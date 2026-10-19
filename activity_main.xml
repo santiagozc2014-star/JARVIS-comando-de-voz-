@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Estado: DETENIDO"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"
+            android:textColor="#102A43" />
+
+        <Button
+            android:id="@+id/btnToggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Iniciar escucha continua"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnTestChatGpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Probar abrir ChatGPT"
+            android:textSize="14sp"
+            android:layout_marginBottom="28dp" />
+
+        <TextView
+            android:id="@+id/thresholdLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sensibilidad: 0.50"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <SeekBar
+            android:id="@+id/thresholdSeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="42"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/lastScoreText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Última detección: —"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_marginBottom="32dp"
+            android:textColor="#555555" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Procesamiento 100% local\n• Al detectar «Hey Jarvis» intenta abrir ChatGPT solo\n• Si Android lo bloquea, aparece una notificación para tocarla\n• Ajusta la sensibilidad si hay falsos positivos\n• Modelo HEY_JARVIS · CC BY-NC-SA 4.0"
+            android:textSize="12sp"
+            android:gravity="start"
+            android:textColor="#666666"
+            android:lineSpacingExtra="4dp" />
+
+    </LinearLayout>
+</ScrollView>
