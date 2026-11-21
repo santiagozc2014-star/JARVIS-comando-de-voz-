@@ -46,6 +46,12 @@
             android:layout_marginTop="12dp"
             android:text="Abrir conversación JARVIS" />
         <Button
+            android:id="@+id/btnOpenMemory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Gestionar memoria de JARVIS" />
+        <Button
             android:id="@+id/btnTestChatGpt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
