@@ -68,6 +68,9 @@ class MainActivity : AppCompatActivity() {
         btnToggle = findViewById(R.id.btnToggle)
         btnTestChatGpt = findViewById(R.id.btnTestChatGpt)
         btnOpenJarvisChat = findViewById(R.id.btnOpenJarvisChat)
+        findViewById<Button>(R.id.btnOpenMemory).setOnClickListener {
+            startActivity(Intent(this, MemoryActivity::class.java))
+        }
         thresholdSeek = findViewById(R.id.thresholdSeek)
         thresholdLabel = findViewById(R.id.thresholdLabel)
         lastScoreText = findViewById(R.id.lastScoreText)
