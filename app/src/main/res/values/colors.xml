@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="jarvis_background">#071522</color>
+    <color name="jarvis_cyan">#00D7FF</color>
+    <color name="jarvis_text">#EAFBFF</color>
+    <color name="jarvis_muted">#8DAAB8</color>
+</resources>
