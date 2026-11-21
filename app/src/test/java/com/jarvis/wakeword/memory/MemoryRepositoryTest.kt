@@ -116,8 +116,14 @@ class MemoryRepositoryTest {
         assertNull(repository.update("missing", "Título", "Contenido"))
     }
 
-    private fun repository(store: FakeMemoryStore) =
-        MemoryRepository(store, clock = { 1234L }, idFactory = { "memory-1" })
+    private fun repository(store: FakeMemoryStore): MemoryRepository {
+        var nextId = 0
+        return MemoryRepository(
+            store,
+            clock = { 1234L },
+            idFactory = { "memory-${++nextId}" }
+        )
+    }
 
     private class FakeMemoryStore : MemoryStore {
         var saved: List<MemoryEntry> = emptyList()
