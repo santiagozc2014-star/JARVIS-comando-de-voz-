@@ -36,7 +36,12 @@ class MemoryRepository(
         )
         require(!entries.containsKey(entry.id)) { "El identificador de memoria ya existe." }
         entries[entry.id] = entry
-        persist()
+        try {
+            persist()
+        } catch (error: Exception) {
+            entries.remove(entry.id)
+            throw error
+        }
         return entry
     }
 
@@ -60,21 +65,37 @@ class MemoryRepository(
             updatedAtMillis = clock()
         )
         entries[id] = updated
-        persist()
+        try {
+            persist()
+        } catch (error: Exception) {
+            entries[id] = previous
+            throw error
+        }
         return updated
     }
 
     suspend fun delete(id: String): Boolean {
         ensureLoaded()
-        if (entries.remove(id) == null) return false
-        persist()
+        val removed = entries.remove(id) ?: return false
+        try {
+            persist()
+        } catch (error: Exception) {
+            entries[id] = removed
+            throw error
+        }
         return true
     }
 
     suspend fun clear() {
         ensureLoaded()
+        val previous = entries.toMap()
         entries.clear()
-        store.clear()
+        try {
+            store.clear()
+        } catch (error: Exception) {
+            entries.putAll(previous)
+            throw error
+        }
     }
 
     suspend fun all(): List<MemoryEntry> {
