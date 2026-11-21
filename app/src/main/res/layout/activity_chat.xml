@@ -24,7 +24,24 @@
         android:textColor="@color/jarvis_muted"
         android:textSize="12sp"
         android:gravity="center"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="4dp" />
+
+    <CheckBox
+        android:id="@+id/chatSaveHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar historial cifrado en este dispositivo"
+        android:textColor="@color/jarvis_text"
+        android:textSize="13sp"
+        android:buttonTint="@color/jarvis_cyan" />
+
+    <Button
+        android:id="@+id/chatClearHistory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="Borrar historial local"
+        android:textSize="12sp" />
 
     <ScrollView
         android:id="@+id/chatScroll"
