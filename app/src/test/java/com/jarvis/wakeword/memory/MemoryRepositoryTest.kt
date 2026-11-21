@@ -89,6 +89,23 @@ class MemoryRepositoryTest {
     }
 
     @Test
+    fun failedPersistenceRollsBackInMemoryMutation() = runBlocking {
+        val store = FakeMemoryStore()
+        val repository = repository(store)
+        store.failWrites = true
+
+        try {
+            repository.add("No guardar", "Este cambio debe revertirse")
+            throw AssertionError("Se esperaba un fallo de almacenamiento.")
+        } catch (_: IllegalStateException) {
+            // Expected.
+        }
+
+        assertTrue(repository.all().isEmpty())
+        assertTrue(store.saved.isEmpty())
+    }
+
+    @Test
     fun memoriesAreRestoredFromStore() = runBlocking {
         val store = FakeMemoryStore()
         val firstRepository = repository(store)
@@ -127,10 +144,12 @@ class MemoryRepositoryTest {
 
     private class FakeMemoryStore : MemoryStore {
         var saved: List<MemoryEntry> = emptyList()
+        var failWrites: Boolean = false
 
         override suspend fun readAll(): List<MemoryEntry> = saved
 
         override suspend fun writeAll(entries: List<MemoryEntry>) {
+            if (failWrites) throw IllegalStateException("Fallo simulado de almacenamiento.")
             saved = entries.toList()
         }
 
