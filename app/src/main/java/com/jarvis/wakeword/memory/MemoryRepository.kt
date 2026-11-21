@@ -3,6 +3,8 @@ package com.jarvis.wakeword.memory
 import java.text.Normalizer
 import java.util.Locale
 import java.util.UUID
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Manages structured memories explicitly saved by the user.
@@ -15,44 +17,46 @@ class MemoryRepository(
     private val clock: () -> Long = System::currentTimeMillis,
     private val idFactory: () -> String = { UUID.randomUUID().toString() }
 ) {
+    private val mutex = Mutex()
     private var loaded = false
     private val entries = linkedMapOf<String, MemoryEntry>()
 
-    suspend fun add(title: String, content: String, tags: List<String> = emptyList()): MemoryEntry {
-        ensureLoaded()
-        val cleanTitle = title.trim()
-        val cleanContent = content.trim()
-        require(cleanTitle.isNotEmpty()) { "El título de la memoria no puede estar vacío." }
-        require(cleanContent.isNotEmpty()) { "El contenido de la memoria no puede estar vacío." }
+    suspend fun add(title: String, content: String, tags: List<String> = emptyList()): MemoryEntry =
+        mutex.withLock {
+            ensureLoaded()
+            val cleanTitle = title.trim()
+            val cleanContent = content.trim()
+            require(cleanTitle.isNotEmpty()) { "El título de la memoria no puede estar vacío." }
+            require(cleanContent.isNotEmpty()) { "El contenido de la memoria no puede estar vacío." }
 
-        val now = clock()
-        val entry = MemoryEntry(
-            id = idFactory(),
-            title = cleanTitle,
-            content = cleanContent,
-            tags = normalizeTags(tags),
-            createdAtMillis = now,
-            updatedAtMillis = now
-        )
-        require(!entries.containsKey(entry.id)) { "El identificador de memoria ya existe." }
-        entries[entry.id] = entry
-        try {
-            persist()
-        } catch (error: Exception) {
-            entries.remove(entry.id)
-            throw error
+            val now = clock()
+            val entry = MemoryEntry(
+                id = idFactory(),
+                title = cleanTitle,
+                content = cleanContent,
+                tags = normalizeTags(tags),
+                createdAtMillis = now,
+                updatedAtMillis = now
+            )
+            require(!entries.containsKey(entry.id)) { "El identificador de memoria ya existe." }
+            entries[entry.id] = entry
+            try {
+                persist()
+            } catch (error: Exception) {
+                entries.remove(entry.id)
+                throw error
+            }
+            entry
         }
-        return entry
-    }
 
     suspend fun update(
         id: String,
         title: String,
         content: String,
         tags: List<String> = emptyList()
-    ): MemoryEntry? {
+    ): MemoryEntry? = mutex.withLock {
         ensureLoaded()
-        val previous = entries[id] ?: return null
+        val previous = entries[id] ?: return@withLock null
         val cleanTitle = title.trim()
         val cleanContent = content.trim()
         require(cleanTitle.isNotEmpty()) { "El título de la memoria no puede estar vacío." }
@@ -71,22 +75,22 @@ class MemoryRepository(
             entries[id] = previous
             throw error
         }
-        return updated
+        updated
     }
 
-    suspend fun delete(id: String): Boolean {
+    suspend fun delete(id: String): Boolean = mutex.withLock {
         ensureLoaded()
-        val removed = entries.remove(id) ?: return false
+        val removed = entries.remove(id) ?: return@withLock false
         try {
             persist()
         } catch (error: Exception) {
             entries[id] = removed
             throw error
         }
-        return true
+        true
     }
 
-    suspend fun clear() {
+    suspend fun clear() = mutex.withLock {
         ensureLoaded()
         val previous = entries.toMap()
         entries.clear()
@@ -98,44 +102,45 @@ class MemoryRepository(
         }
     }
 
-    suspend fun all(): List<MemoryEntry> {
+    suspend fun all(): List<MemoryEntry> = mutex.withLock {
         ensureLoaded()
-        return entries.values.sortedByDescending { it.updatedAtMillis }
+        entries.values.sortedByDescending { it.updatedAtMillis }
     }
 
     /**
      * Case- and accent-insensitive keyword search.
      * Every query term must occur in the title, content, or tags.
      */
-    suspend fun search(query: String, limit: Int = DEFAULT_LIMIT): List<MemoryEntry> {
-        require(limit in 1..MAX_LIMIT) { "El límite de búsqueda no es válido." }
-        ensureLoaded()
-        val terms = tokenize(query)
-        if (terms.isEmpty()) return emptyList()
+    suspend fun search(query: String, limit: Int = DEFAULT_LIMIT): List<MemoryEntry> =
+        mutex.withLock {
+            require(limit in 1..MAX_LIMIT) { "El límite de búsqueda no es válido." }
+            ensureLoaded()
+            val terms = tokenize(query)
+            if (terms.isEmpty()) return@withLock emptyList()
 
-        return entries.values
-            .mapNotNull { entry ->
-                val title = normalize(entry.title)
-                val content = normalize(entry.content)
-                val tags = entry.tags.map(::normalize)
-                val searchable = listOf(title, content) + tags
-                if (!terms.all { term -> searchable.any { it.contains(term) } }) {
-                    return@mapNotNull null
+            entries.values
+                .mapNotNull { entry ->
+                    val title = normalize(entry.title)
+                    val content = normalize(entry.content)
+                    val tags = entry.tags.map(::normalize)
+                    val searchable = listOf(title, content) + tags
+                    if (!terms.all { term -> searchable.any { it.contains(term) } }) {
+                        return@mapNotNull null
+                    }
+                    val score = terms.sumOf { term ->
+                        (if (title.contains(term)) 4 else 0) +
+                            (if (tags.any { it.contains(term) }) 3 else 0) +
+                            (if (content.contains(term)) 1 else 0)
+                    }
+                    entry to score
                 }
-                val score = terms.sumOf { term ->
-                    (if (title.contains(term)) 4 else 0) +
-                        (if (tags.any { it.contains(term) }) 3 else 0) +
-                        (if (content.contains(term)) 1 else 0)
-                }
-                entry to score
-            }
-            .sortedWith(
-                compareByDescending<Pair<MemoryEntry, Int>> { it.second }
-                    .thenByDescending { it.first.updatedAtMillis }
-            )
-            .take(limit)
-            .map { it.first }
-    }
+                .sortedWith(
+                    compareByDescending<Pair<MemoryEntry, Int>> { it.second }
+                        .thenByDescending { it.first.updatedAtMillis }
+                )
+                .take(limit)
+                .map { it.first }
+        }
 
     private suspend fun ensureLoaded() {
         if (loaded) return
