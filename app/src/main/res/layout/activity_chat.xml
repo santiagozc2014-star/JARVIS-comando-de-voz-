@@ -16,6 +16,16 @@
         android:gravity="center"
         android:padding="12dp" />
 
+    <TextView
+        android:id="@+id/chatProviderStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Proveedor: no conectado"
+        android:textColor="@color/jarvis_muted"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:paddingBottom="8dp" />
+
     <ScrollView
         android:id="@+id/chatScroll"
         android:layout_width="match_parent"
