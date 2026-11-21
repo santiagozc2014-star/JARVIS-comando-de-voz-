@@ -21,6 +21,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.2.1"
+      - name: Run conversation unit tests
+        run: gradle :app:testDebugUnitTest
       - name: Build debug APK
         run: gradle :app:assembleDebug
       - name: Upload debug APK
