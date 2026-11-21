@@ -8,17 +8,26 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.jarvis.wakeword.ai.ProviderConnectionState
+import androidx.lifecycle.lifecycleScope
+import com.jarvis.wakeword.ai.AiResult
+import com.jarvis.wakeword.ai.ConversationRepository
+import com.jarvis.wakeword.ai.NotConfiguredAiProvider
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 /**
- * Native conversation screen. It deliberately does not fabricate AI answers:
- * until an authorized provider is connected, it explains the connection state.
+ * Native conversation screen.
+ * Messages are routed through a provider-neutral repository; the default
+ * provider explicitly reports that ChatGPT has not been authorized yet.
  */
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var transcript: LinearLayout
     private lateinit var input: EditText
     private lateinit var scroll: ScrollView
+    private lateinit var sendButton: Button
+
+    private val conversation = ConversationRepository(NotConfiguredAiProvider())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,29 +36,40 @@ class ChatActivity : AppCompatActivity() {
         transcript = findViewById(R.id.chatTranscript)
         input = findViewById(R.id.chatInput)
         scroll = findViewById(R.id.chatScroll)
+        sendButton = findViewById(R.id.chatSendButton)
+
+        findViewById<TextView>(R.id.chatProviderStatus).text =
+            "Proveedor: ${conversation.providerName} · No conectado"
 
         addMessage("JARVIS", "Buenos días, Santi. Interfaz conversacional inicializada.")
         addMessage(
             "SISTEMA",
-            when (ProviderConnectionState.NOT_CONFIGURED) {
-                ProviderConnectionState.NOT_CONFIGURED ->
-                    "Conexión con ChatGPT pendiente de autorización oficial. No se ha enviado ningún mensaje a un modelo."
-                ProviderConnectionState.AUTHORIZATION_REQUIRED ->
-                    "Se necesita autorización para conectar el proveedor."
-                ProviderConnectionState.CONNECTED -> "Proveedor conectado."
-                ProviderConnectionState.ERROR -> "El proveedor comunicó un error."
-            }
+            "La conexión oficial con ChatGPT todavía está pendiente. Esta pantalla no simula respuestas de inteligencia artificial."
         )
 
-        findViewById<Button>(R.id.chatSendButton).setOnClickListener {
-            val message = input.text.toString().trim()
-            if (message.isNotEmpty()) {
-                addMessage("TÚ", message)
-                input.text.clear()
-                addMessage(
-                    "JARVIS",
-                    "He recibido tu mensaje. Mi conector de inteligencia todavía no está autorizado; no voy a simular una respuesta de ChatGPT."
-                )
+        sendButton.setOnClickListener { sendMessage() }
+    }
+
+    private fun sendMessage() {
+        val message = input.text.toString().trim()
+        if (message.isEmpty() || !sendButton.isEnabled) return
+
+        addMessage("TÚ", message)
+        input.text.clear()
+        sendButton.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                when (val result = conversation.send(message)) {
+                    is AiResult.Success -> addMessage("JARVIS", result.text)
+                    is AiResult.Unavailable -> addMessage("SISTEMA", result.reason)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                addMessage("SISTEMA", "No se pudo procesar el mensaje. No se ha confirmado ninguna conexión.")
+            } finally {
+                sendButton.isEnabled = true
             }
         }
     }
