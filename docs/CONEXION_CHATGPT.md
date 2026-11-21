@@ -12,8 +12,11 @@ Documentación oficial:
 
 ## Qué permite y qué no
 
-- Puede permitir que una aplicación elegible envíe solicitudes de IA usando el uso incluido en un plan ChatGPT compatible, después de que el usuario autorice expresamente el permiso correspondiente.
+- Puede permitir que una aplicación OSS elegible envíe solicitudes Responses API usando el uso incluido en un plan ChatGPT compatible, después de que el usuario autorice expresamente el permiso correspondiente.
+- La guía oficial indica que el uso del plan está disponible para usuarios elegibles de ChatGPT Plus y Pro; no se debe asumir que una cuenta Free puede usar esta modalidad. Hay que comprobar los requisitos vigentes antes de diseñar la conexión final.
 - La disponibilidad, elegibilidad, límites y registro de la aplicación dependen de los requisitos oficiales vigentes.
+- Las solicitudes deben ejecutarse en el entorno local del usuario (o un entorno remoto bajo su control), corresponder a su propia actividad y no convertirse en un servicio API general para terceros.
+- Antes de cualquier uso en segundo plano se necesita consentimiento expreso; el usuario debe poder desconectar la cuenta y controlar el uso.
 - No concede acceso al historial de conversaciones, memoria, archivos ni datos privados de ChatGPT.
 - La autorización de identidad y la autorización para usar el plan son permisos distintos.
 - No proporciona una clave API reutilizable para otros servicios.
