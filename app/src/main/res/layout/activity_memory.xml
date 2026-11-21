@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/jarvis_background"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MEMORIA DE J.A.R.V.I.S."
+        android:textColor="@color/jarvis_cyan"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="12dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recuerdos locales cifrados. JARVIS no guarda nada automáticamente."
+        android:textColor="@color/jarvis_muted"
+        android:textSize="13sp"
+        android:paddingBottom="10dp" />
+
+    <EditText
+        android:id="@+id/memorySearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Buscar recuerdos…"
+        android:singleLine="true"
+        android:inputType="text"
+        android:textColor="@color/jarvis_text"
+        android:textColorHint="@color/jarvis_muted" />
+
+    <Button
+        android:id="@+id/memoryAddButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Añadir recuerdo" />
+
+    <TextView
+        android:id="@+id/memoryEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="24dp"
+        android:textColor="@color/jarvis_muted"
+        android:text="Todavía no hay recuerdos guardados." />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/memoryEntries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>
