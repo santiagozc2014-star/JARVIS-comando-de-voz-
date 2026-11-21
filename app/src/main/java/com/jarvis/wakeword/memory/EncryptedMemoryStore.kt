@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -29,11 +30,18 @@ class EncryptedMemoryStore(context: Context) : MemoryStore {
     )
 
     override suspend fun readAll(): List<MemoryEntry> = withContext(Dispatchers.IO) {
-        if (!atomicFile.baseFile.exists()) return@withContext emptyList()
-        if (atomicFile.baseFile.length() > MAX_FILE_BYTES) {
-            throw IllegalStateException("El archivo de memoria supera el tamaño permitido.")
+        // openRead() also restores AtomicFile's backup after an interrupted write.
+        val input = try {
+            atomicFile.openRead()
+        } catch (_: FileNotFoundException) {
+            return@withContext emptyList()
         }
-        val encrypted = atomicFile.openRead().use { it.readBytes() }
+        val encrypted = input.use {
+            if (atomicFile.baseFile.length() > MAX_FILE_BYTES) {
+                throw IllegalStateException("El archivo de memoria supera el tamaño permitido.")
+            }
+            it.readBytes()
+        }
         decrypt(encrypted)
     }
 
@@ -41,7 +49,9 @@ class EncryptedMemoryStore(context: Context) : MemoryStore {
         val payload = serialize(entries)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
-        val encrypted = cipher.iv + cipher.doFinal(payload)
+        val iv = cipher.iv
+        check(iv.size == IV_BYTES) { "El proveedor criptográfico devolvió un IV no válido." }
+        val encrypted = iv + cipher.doFinal(payload)
         require(encrypted.size <= MAX_FILE_BYTES) {
             "La memoria ocupa más espacio del permitido."
         }
