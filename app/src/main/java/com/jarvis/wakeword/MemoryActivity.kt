@@ -128,7 +128,7 @@ class MemoryActivity : AppCompatActivity() {
         }
         val titleInput = EditText(this).apply {
             hint = "Título"
-            singleLine = true
+            setSingleLine(true)
             setText(existing?.title.orEmpty())
         }
         val contentInput = EditText(this).apply {
