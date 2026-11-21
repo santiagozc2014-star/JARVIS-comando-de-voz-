@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var btnToggle: Button
     private lateinit var btnTestChatGpt: Button
+    private lateinit var btnOpenJarvisChat: Button
     private lateinit var thresholdSeek: SeekBar
     private lateinit var thresholdLabel: TextView
     private lateinit var lastScoreText: TextView
@@ -66,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.statusText)
         btnToggle = findViewById(R.id.btnToggle)
         btnTestChatGpt = findViewById(R.id.btnTestChatGpt)
+        btnOpenJarvisChat = findViewById(R.id.btnOpenJarvisChat)
         thresholdSeek = findViewById(R.id.thresholdSeek)
         thresholdLabel = findViewById(R.id.thresholdLabel)
         lastScoreText = findViewById(R.id.lastScoreText)
@@ -91,6 +93,10 @@ class MainActivity : AppCompatActivity() {
 
         btnToggle.setOnClickListener {
             if (isServiceRunning) stopService() else checkPermissionAndStart()
+        }
+
+        btnOpenJarvisChat.setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java))
         }
 
         btnTestChatGpt.setOnClickListener {
