@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JARVIS Wake Word</string>
+    <string name="jarvis_logo_description">Símbolo de JARVIS</string>
+    <string name="privacy_notice">La detección «Hey JARVIS» se realiza localmente en el teléfono. Esta versión solo abre la aplicación oficial de ChatGPT; todavía no envía audio ni mensajes a un modelo de IA desde JARVIS.</string>
+</resources>
