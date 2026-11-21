@@ -104,7 +104,7 @@ class MemoryRepository(
                 val score = terms.sumOf { term ->
                     (if (title.contains(term)) 4 else 0) +
                         (if (tags.any { it.contains(term) }) 3 else 0) +
-                        (if (content.contains(term)) 1 else 0
+                        (if (content.contains(term)) 1 else 0)
                 }
                 entry to score
             }
