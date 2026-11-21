@@ -35,4 +35,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("com.github.msnilsen:openwakeword-android:0.1.0")
+
+    testImplementation("junit:junit:4.13.2")
 }
