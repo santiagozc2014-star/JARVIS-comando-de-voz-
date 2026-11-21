@@ -106,6 +106,48 @@ class MemoryRepositoryTest {
     }
 
     @Test
+    fun failedUpdateAndDeleteRestorePreviousEntry() = runBlocking {
+        val store = FakeMemoryStore()
+        val repository = repository(store)
+        val original = repository.add("Original", "Contenido original")
+        store.failWrites = true
+
+        try {
+            repository.update(original.id, "Modificado", "Contenido modificado")
+            throw AssertionError("Se esperaba un fallo al actualizar.")
+        } catch (_: IllegalStateException) {
+            // Expected.
+        }
+        assertEquals(original, repository.all().single())
+
+        try {
+            repository.delete(original.id)
+            throw AssertionError("Se esperaba un fallo al borrar.")
+        } catch (_: IllegalStateException) {
+            // Expected.
+        }
+        assertEquals(original, repository.all().single())
+    }
+
+    @Test
+    fun failedClearRestoresInMemoryEntries() = runBlocking {
+        val store = FakeMemoryStore()
+        val repository = repository(store)
+        val original = repository.add("Conservar", "No borrar")
+        store.failClear = true
+
+        try {
+            repository.clear()
+            throw AssertionError("Se esperaba un fallo al limpiar.")
+        } catch (_: IllegalStateException) {
+            // Expected.
+        }
+
+        assertEquals(listOf(original), repository.all())
+        assertEquals(listOf(original), store.saved)
+    }
+
+    @Test
     fun memoriesAreRestoredFromStore() = runBlocking {
         val store = FakeMemoryStore()
         val firstRepository = repository(store)
@@ -145,6 +187,7 @@ class MemoryRepositoryTest {
     private class FakeMemoryStore : MemoryStore {
         var saved: List<MemoryEntry> = emptyList()
         var failWrites: Boolean = false
+        var failClear: Boolean = false
 
         override suspend fun readAll(): List<MemoryEntry> = saved
 
@@ -154,6 +197,7 @@ class MemoryRepositoryTest {
         }
 
         override suspend fun clear() {
+            if (failClear) throw IllegalStateException("Fallo simulado al limpiar.")
             saved = emptyList()
         }
     }
