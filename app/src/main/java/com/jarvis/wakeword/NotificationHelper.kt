@@ -89,20 +89,27 @@ object NotificationHelper {
     }
 
     fun showDetectionNotification(context: Context) {
-        // A notification tap is a user action, so Android permits this PendingIntent
-        // to invoke the selected system assistant without a background-activity trampoline.
-        val openAssistant = Intent(Intent.ACTION_ASSIST)
+        // Use the exact same package launch intent as the app's working manual
+        // "Open ChatGPT" button. ACTION_ASSIST is not consistently routed by
+        // Samsung One UI when invoked from a notification PendingIntent.
+        val openChatGpt = context.packageManager
+            .getLaunchIntentForPackage("com.openai.chatgpt")
+            ?: Intent(context, MainActivity::class.java)
+
+        openChatGpt.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+        )
+
         val pending = PendingIntent.getActivity(
-            context, 2, openAssistant,
+            context, 2002, openChatGpt,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = "Hey JARVIS detectado"
-        val text = "Toca aquí para abrir el asistente de voz"
-
         val builder = NotificationCompat.Builder(context, DETECTION_CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(text)
+            .setContentTitle("Hey JARVIS detectado")
+            .setContentText("Toca aquí para abrir ChatGPT")
             .setSmallIcon(R.drawable.ic_jarvis)
             .setContentIntent(pending)
             .setAutoCancel(true)
@@ -110,8 +117,8 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.notify(DETECTION_NOTIFICATION_ID, builder.build())
+        context.getSystemService(NotificationManager::class.java)
+            .notify(DETECTION_NOTIFICATION_ID, builder.build())
     }
 
     fun showErrorNotification(context: Context, message: String) {
