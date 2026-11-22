@@ -30,9 +30,6 @@ class WakeWordService : Service() {
                 stopSelf()
                 return START_NOT_STICKY
             }
-            ACTION_OPEN_CHATGPT -> {
-                return START_NOT_STICKY
-            }
             else -> {
                 val threshold = intent?.getFloatExtra(EXTRA_THRESHOLD, 0.5f) ?: 0.5f
                 startListening(threshold)
@@ -201,7 +198,6 @@ class WakeWordService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.jarvis.wakeword.STOP"
-        const val ACTION_OPEN_CHATGPT = "com.jarvis.wakeword.OPEN_CHATGPT"
         const val ACTION_STATUS = "com.jarvis.wakeword.STATUS"
 
         const val EXTRA_THRESHOLD = "threshold"
