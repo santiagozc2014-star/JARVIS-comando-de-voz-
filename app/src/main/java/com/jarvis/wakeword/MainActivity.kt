@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var lastScoreText: TextView
 
     private var isServiceRunning = false
+    private var engineState = WakeWordService.STATE_STOPPED
     private var currentThreshold = 0.50f
 
     private val requestPermission = registerForActivityResult(
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity() {
             if (intent?.action != WakeWordService.ACTION_STATUS) return
             val listening = intent.getBooleanExtra(WakeWordService.EXTRA_LISTENING, false)
             isServiceRunning = listening
+            engineState = intent.getStringExtra(WakeWordService.EXTRA_ENGINE_STATE)
+                ?: if (listening) WakeWordDetector.STATE_STARTING else WakeWordService.STATE_STOPPED
             updateUI()
 
             val score = intent.getFloatExtra(WakeWordService.EXTRA_LAST_SCORE, -1f)
@@ -110,6 +113,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         isServiceRunning = WakeWordService.isMarkedListening(this)
+        engineState = if (isServiceRunning) WakeWordDetector.STATE_STARTING else WakeWordService.STATE_STOPPED
         updateUI()
         handleLaunchIntent(intent)
     }
@@ -121,6 +125,7 @@ class MainActivity : AppCompatActivity() {
             this, statusReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED
         )
         isServiceRunning = WakeWordService.isMarkedListening(this)
+        if (!isServiceRunning) engineState = WakeWordService.STATE_STOPPED
         updateUI()
     }
 
@@ -156,6 +161,7 @@ class MainActivity : AppCompatActivity() {
         }
         ContextCompat.startForegroundService(this, intent)
         isServiceRunning = true
+        engineState = WakeWordDetector.STATE_STARTING
         updateUI()
     }
 
@@ -165,6 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
         startService(intent)
         isServiceRunning = false
+        engineState = WakeWordService.STATE_STOPPED
         updateUI()
     }
 
@@ -174,10 +181,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI() {
         if (isServiceRunning) {
-            statusText.text = "Estado: ESCUCHANDO\nDi «Hey Jarvis»\nChatGPT se abrirá solo (si Android lo permite)"
+            val detail = when (engineState) {
+                WakeWordDetector.STATE_STARTING -> "Preparando el motor de reconocimiento…"
+                WakeWordDetector.STATE_LOADING -> "Cargando modelos de voz…"
+                WakeWordDetector.STATE_CHECKING -> "Comprobando el micrófono…"
+                WakeWordDetector.STATE_CAPTURING -> "Micrófono activo. Di «Hey Jarvis»."
+                else -> "Servicio activo; verificando el motor de audio…"
+            }
+            statusText.text = "Estado: $engineState\n$detail"
             btnToggle.text = "Detener escucha"
         } else {
-            statusText.text = "Estado: DETENIDO"
+            statusText.text = if (engineState == WakeWordService.STATE_ERROR) {
+                "Estado: ERROR\nRevisa la notificación de JARVIS."
+            } else {
+                "Estado: DETENIDO"
+            }
             btnToggle.text = "Iniciar escucha continua"
         }
     }
