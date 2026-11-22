@@ -25,7 +25,7 @@ object NotificationHelper {
                 "JARVIS escuchando",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Escucha continua de «Hey Jarvis». El micrófono está activo."
+                description = "Estado del servicio de reconocimiento de voz de JARVIS."
                 setShowBadge(false)
                 setSound(null, null)
             }
@@ -64,7 +64,7 @@ object NotificationHelper {
         )
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("JARVIS escuchando")
+            .setContentTitle("JARVIS · Reconocimiento de voz")
             .setContentText(statusText)
             .setSmallIcon(R.drawable.ic_jarvis)
             .setOngoing(true)
