@@ -85,17 +85,29 @@ class WakeWordService : Service() {
             onError = { msg ->
                 Log.e(TAG, msg)
                 NotificationHelper.showErrorNotification(this, msg)
+                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(KEY_LISTENING, false)
+                    .apply()
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, false)
+                    putExtra(EXTRA_ENGINE_STATE, STATE_ERROR)
                     putExtra(EXTRA_ERROR, msg)
                 })
                 stopSelf()
+            },
+            onStateChanged = { state ->
+                sendBroadcast(Intent(ACTION_STATUS).apply {
+                    putExtra(EXTRA_LISTENING, true)
+                    putExtra(EXTRA_ENGINE_STATE, state)
+                })
             }
         )
         detector?.start()
 
         sendBroadcast(Intent(ACTION_STATUS).apply {
             putExtra(EXTRA_LISTENING, true)
+            putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
         })
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -111,6 +123,7 @@ class WakeWordService : Service() {
 
         sendBroadcast(Intent(ACTION_STATUS).apply {
             putExtra(EXTRA_LISTENING, false)
+            putExtra(EXTRA_ENGINE_STATE, STATE_STOPPED)
         })
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -182,6 +195,9 @@ class WakeWordService : Service() {
         const val EXTRA_LAST_SCORE = "last_score"
         const val EXTRA_AUTO_OPENED = "auto_opened"
         const val EXTRA_ERROR = "error"
+        const val EXTRA_ENGINE_STATE = "engine_state"
+        const val STATE_ERROR = "ERROR"
+        const val STATE_STOPPED = "DETENIDO"
 
         private const val PREFS = "jarvis_prefs"
         private const val KEY_LISTENING = "is_listening"
