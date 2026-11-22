@@ -34,7 +34,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("com.github.msnilsen:openwakeword-android:0.1.0")
+    implementation("com.github.msnilsen:openwakeword-android:b49f3ab14cf558ac0c2aef73a5e6c83da7a08558")
 
     testImplementation("junit:junit:4.13.2")
 }
