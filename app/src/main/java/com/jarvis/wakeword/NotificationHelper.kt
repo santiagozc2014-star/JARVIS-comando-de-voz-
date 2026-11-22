@@ -45,7 +45,10 @@ object NotificationHelper {
         }
     }
 
-    fun buildListeningNotification(context: Context): Notification {
+    fun buildListeningNotification(
+        context: Context,
+        statusText: String = "Preparando el motor de reconocimiento…"
+    ): Notification {
         val stopIntent = Intent(context, WakeWordService::class.java).apply {
             action = WakeWordService.ACTION_STOP
         }
@@ -62,7 +65,7 @@ object NotificationHelper {
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("JARVIS escuchando")
-            .setContentText("Di «Hey Jarvis» · Micrófono activo")
+            .setContentText(statusText)
             .setSmallIcon(R.drawable.ic_jarvis)
             .setOngoing(true)
             .setContentIntent(openPending)
@@ -71,6 +74,18 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setSilent(true)
             .build()
+    }
+
+    fun updateListeningNotification(context: Context, engineState: String) {
+        val status = when (engineState) {
+            WakeWordDetector.STATE_STARTING -> "Preparando el motor de reconocimiento…"
+            WakeWordDetector.STATE_LOADING -> "Cargando modelos de voz…"
+            WakeWordDetector.STATE_CHECKING -> "Comprobando el micrófono…"
+            WakeWordDetector.STATE_CAPTURING -> "Micrófono activo · Di «Hey Jarvis»"
+            else -> "Verificando el motor de audio…"
+        }
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.notify(NOTIFICATION_ID, buildListeningNotification(context, status))
     }
 
     fun showDetectionNotification(context: Context, autoOpened: Boolean) {
