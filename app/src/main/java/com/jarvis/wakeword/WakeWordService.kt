@@ -16,6 +16,7 @@ class WakeWordService : Service() {
 
     private var detector: WakeWordDetector? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var terminalError = false
 
     override fun onCreate() {
         super.onCreate()
@@ -46,6 +47,7 @@ class WakeWordService : Service() {
             return
         }
 
+        terminalError = false
         val notification = NotificationHelper.buildListeningNotification(this)
 
         val fgsType = if (Build.VERSION.SDK_INT >= 34) {
@@ -83,6 +85,7 @@ class WakeWordService : Service() {
                 })
             },
             onError = { msg ->
+                terminalError = true
                 Log.e(TAG, msg)
                 NotificationHelper.showErrorNotification(this, msg)
                 getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -128,14 +131,15 @@ class WakeWordService : Service() {
         releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
 
+        val finalState = if (terminalError) STATE_ERROR else STATE_STOPPED
         sendBroadcast(Intent(ACTION_STATUS).apply {
             putExtra(EXTRA_LISTENING, false)
-            putExtra(EXTRA_ENGINE_STATE, STATE_STOPPED)
+            putExtra(EXTRA_ENGINE_STATE, finalState)
         })
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_LISTENING, false)
-            .putString(KEY_ENGINE_STATE, STATE_STOPPED)
+            .putString(KEY_ENGINE_STATE, finalState)
             .apply()
     }
 
