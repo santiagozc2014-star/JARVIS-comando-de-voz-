@@ -46,7 +46,8 @@ jobs:
           APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -x "$APKSIGNER"
           "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.signature.txt
-          grep -q "Signer #1 certificate SHA-256 digest:" app/build/outputs/apk/debug/app-debug.apk.signature.txt
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" app/build/outputs/apk/debug/app-debug.apk.signature.txt
+          grep -Eq "V2 Signer: certificate SHA-256 digest: [[:xdigit:]]{64}" app/build/outputs/apk/debug/app-debug.apk.signature.txt
       - name: Generate APK checksum
         run: sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/app-debug.apk.sha256
       - name: Upload debug APK
