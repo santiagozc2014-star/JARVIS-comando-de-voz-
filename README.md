@@ -2,6 +2,8 @@
 
 Aplicación experimental para Samsung Galaxy A30s (Android 11 / API 30) que reconoce localmente «Hey Jarvis».
 
+Esta configuración mantiene `targetSdk 30` para el dispositivo Android 11 probado y la distribución directa del APK. No está preparada para publicarse en Google Play: antes habría que migrar a un nivel API vigente y adaptar permisos y servicio de micrófono, y repetir las pruebas en Android recientes.
+
 ## Qué hace esta versión
 
 - Escucha continua mediante un servicio en primer plano y una notificación persistente.
