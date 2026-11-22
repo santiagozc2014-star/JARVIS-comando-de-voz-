@@ -87,6 +87,20 @@ class MainActivity : AppCompatActivity() {
         thresholdSeek.progress = ((currentThreshold - 0.25f) / 0.60f * 100).toInt().coerceIn(0, 100)
         updateThresholdLabel()
 
+        thresholdSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                currentThreshold = 0.25f + (progress / 100f) * 0.60f
+                updateThresholdLabel()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                getSharedPreferences("jarvis_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putFloat("threshold", currentThreshold)
+                    .apply()
+            }
+        })
+
         btnToggle.setOnClickListener {
             if (isServiceRunning) stopService() else checkPermissionAndStart()
         }
