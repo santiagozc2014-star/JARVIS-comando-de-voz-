@@ -119,7 +119,6 @@ class MainActivity : AppCompatActivity() {
         isServiceRunning = WakeWordService.isMarkedListening(this)
         engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
-        handleLaunchIntent(intent)
     }
 
     override fun onStart() {
@@ -136,19 +135,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         try { unregisterReceiver(statusReceiver) } catch (_: Exception) {}
         super.onStop()
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleLaunchIntent(intent)
-    }
-
-    private fun handleLaunchIntent(intent: Intent?) {
-        if (intent?.action == WakeWordService.ACTION_OPEN_CHATGPT) {
-            ChatGPTLauncher.requestVoiceAssistantLaunch(this)
-            intent.action = null
-        }
     }
 
     private fun checkPermissionAndStart() {
