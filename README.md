@@ -48,6 +48,11 @@ gradle :app:assembleDebug
 El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 La canalización de CI solo publica el APK si el análisis Lint, las pruebas unitarias, la compilación y la verificación de firma terminan correctamente.
 
+La canalización también puede generar un APK **release firmado de forma estable** cuando estén configurados los cuatro secretos de GitHub siguientes: `JARVIS_KEYSTORE_BASE64`, `JARVIS_KEYSTORE_PASSWORD`, `JARVIS_KEY_ALIAS` y `JARVIS_KEY_PASSWORD`. La clave privada se descodifica solo en el entorno temporal del runner y nunca se incluye en el repositorio ni en los artefactos.
+
+La creación y custodia del keystore debe realizarla un adulto responsable. Debe conservarse una copia de seguridad segura fuera de GitHub; perder esa clave impediría publicar futuras actualizaciones compatibles. No compartas contraseñas ni archivos de clave en el chat. Hasta que los cuatro secretos estén configurados, el flujo seguirá produciendo únicamente el APK debug temporal.
+
+
 **Aviso de instalación:** el APK de depuración de GitHub Actions se firma con una clave temporal del entorno de compilación. No debe tratarse como una actualización instalable garantizada sobre una versión anterior. Para actualizaciones sin desinstalar ni perder datos habrá que configurar una clave de firma estable, custodiada por un adulto responsable, mediante secretos de GitHub. No se debe subir la clave privada al repositorio.
 
 En la revisión del 22-11-2026 se confirmó que el certificado del APK de la ejecución #87 es distinto al del APK de la ejecución #72. Android rechazará el nuevo APK como actualización de aquella instalación. **No desinstales la versión que ya funciona ni instales este APK encima.** Desinstalar puede borrar los datos locales. La clave privada temporal de la ejecución antigua no está disponible; antes de migrar habrá que acordar una instalación segura y conservar los datos que se quieran mantener.
