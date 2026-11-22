@@ -25,13 +25,19 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.2.1"
+      - name: Run Android lint
+        run: gradle :app:lintDebug
       - name: Run conversation unit tests
         run: gradle :app:testDebugUnitTest
       - name: Build debug APK
         run: gradle :app:assembleDebug
+      - name: Generate APK checksum
+        run: sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/app-debug.apk.sha256
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: JARVISWakeWord-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/app-debug.apk.sha256
           if-no-files-found: error
