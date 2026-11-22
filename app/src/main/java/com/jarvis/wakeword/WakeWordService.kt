@@ -73,7 +73,7 @@ class WakeWordService : Service() {
                 vibrateShort()
 
                 // Intento de apertura AUTOMÁTICA de ChatGPT (sin tocar nada)
-                val opened = ChatGPTLauncher.launch(this)
+                val opened = ChatGPTLauncher.launchVoiceAssistant(this)
                 Log.i(TAG, "Apertura automática de ChatGPT: $opened")
 
                 NotificationHelper.showDetectionNotification(this, autoOpened = opened)
