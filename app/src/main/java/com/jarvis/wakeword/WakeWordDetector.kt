@@ -4,80 +4,136 @@ import android.content.Context
 import android.media.AudioRecord
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import com.openwakeword.OpenWakeWord
 
+/**
+ * Controls the wake-word engine and verifies that its worker and microphone
+ * are genuinely running. The upstream library does not expose startup errors
+ * or a readiness callback, so this class monitors its internal worker state.
+ */
 class WakeWordDetector(
     private val context: Context,
     private val threshold: Float = 0.5f,
     private val onDetected: (Float) -> Unit,
-    private val onError: (String) -> Unit
+    private val onError: (String) -> Unit,
+    private val onStateChanged: (String) -> Unit = {}
 ) {
     private var detector: OpenWakeWord? = null
-    private var isListening = false
+    @Volatile private var isListening = false
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    private val healthCheck = Runnable {
-        if (!isListening) return@Runnable
+    private var startedAtMs = 0L
+    private var audioCaptureConfirmed = false
+    private var lastReportedState: String? = null
 
-        try {
-            val engine = detector ?: throw IllegalStateException("El motor no existe")
-            val threadField = engine.javaClass.getDeclaredField("processingThread").apply {
-                isAccessible = true
-            }
-            val audioField = engine.javaClass.getDeclaredField("audioRecord").apply {
-                isAccessible = true
-            }
-            val worker = threadField.get(engine) as? Thread
-            val recorder = audioField.get(engine) as? AudioRecord
+    private val healthCheck = object : Runnable {
+        override fun run() {
+            if (!isListening) return
 
-            val failure = when {
-                worker == null -> "El motor de reconocimiento no creó su hilo de audio."
-                !worker.isAlive -> "El motor de reconocimiento se detuvo durante la inicialización."
-                recorder == null -> "El motor no pudo crear el capturador del micrófono."
-                recorder.state != AudioRecord.STATE_INITIALIZED ->
-                    "Android no pudo inicializar el capturador de audio."
-                recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING ->
-                    "El capturador existe, pero Android no está entregando audio."
-                else -> null
+            try {
+                val engine = detector
+                    ?: throw IllegalStateException("El motor de reconocimiento no existe.")
+
+                val threadField = engine.javaClass.getDeclaredField("processingThread").apply {
+                    isAccessible = true
+                }
+                val audioField = engine.javaClass.getDeclaredField("audioRecord").apply {
+                    isAccessible = true
+                }
+
+                val worker = threadField.get(engine) as? Thread
+                val recorder = audioField.get(engine) as? AudioRecord
+                val elapsed = SystemClock.elapsedRealtime() - startedAtMs
+
+                when {
+                    worker == null -> fail("El motor no llegó a crear su hilo de procesamiento.")
+                    !worker.isAlive -> fail(
+                        "El motor de reconocimiento se detuvo durante la inicialización. " +
+                            "La biblioteca no comunicó el error original."
+                    )
+                    recorder == null && elapsed >= STARTUP_TIMEOUT_MS ->
+                        fail("El motor no pudo inicializar el micrófono en 45 segundos.")
+                    recorder == null -> reportState(STATE_LOADING)
+                    recorder.state != AudioRecord.STATE_INITIALIZED ->
+                        fail("Android creó el capturador, pero no pudo inicializarlo.")
+                    recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING -> {
+                        if (!audioCaptureConfirmed) {
+                            audioCaptureConfirmed = true
+                            reportState(STATE_CAPTURING)
+                            Log.i(TAG, "Captura real de audio confirmada.")
+                        }
+                    }
+                    audioCaptureConfirmed ->
+                        fail("La captura de audio se interrumpió mientras JARVIS escuchaba.")
+                    elapsed >= STARTUP_TIMEOUT_MS ->
+                        fail("El micrófono no comenzó a capturar audio en 45 segundos.")
+                    else -> reportState(STATE_STARTING)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "No se pudo verificar el estado del motor", e)
+                val elapsed = SystemClock.elapsedRealtime() - startedAtMs
+                if (elapsed >= STARTUP_TIMEOUT_MS) {
+                    fail("No se pudo verificar el motor de audio: ${e.message ?: e.javaClass.simpleName}")
+                    return
+                }
+                reportState(STATE_CHECKING)
             }
 
-            if (failure != null) {
-                Log.e(TAG, "Comprobación del motor: $failure")
-                isListening = false
-                onError(failure)
-            } else {
-                Log.i(TAG, "Motor de audio activo; hilo y AudioRecord verificados.")
+            if (isListening) {
+                mainHandler.postDelayed(
+                    this,
+                    if (audioCaptureConfirmed) HEALTH_CHECK_INTERVAL_MS else STARTUP_CHECK_INTERVAL_MS
+                )
             }
-        } catch (e: Exception) {
-            // A diagnostic failure must not stop a detector that may be working.
-            Log.w(TAG, "No se pudo inspeccionar el estado interno del motor", e)
         }
     }
 
     fun start() {
         if (isListening) return
+
         try {
+            reportState(STATE_STARTING)
+            startedAtMs = SystemClock.elapsedRealtime()
+            audioCaptureConfirmed = false
+
             detector = OpenWakeWord.Builder(context)
                 .setModel(OpenWakeWord.BuiltInModel.HEY_JARVIS)
                 .setThreshold(threshold.coerceIn(0.25f, 0.85f))
                 .setDebounceMs(2200L)
                 .build()
 
+            isListening = true
             detector?.start { score ->
-                Log.d(TAG, "Hey Jarvis detectado! score=$score")
+                Log.i(TAG, "Hey Jarvis detectado; score=$score")
                 onDetected(score)
             }
-            isListening = true
-            Log.i(TAG, "Motor solicitado (threshold=$threshold); verificando captura real de audio.")
-            // The library initializes ONNX models asynchronously and exposes no readiness callback.
-            // Inspect its worker and AudioRecord after the initialization window.
-            mainHandler.postDelayed(healthCheck, 20000L)
+
+            Log.i(TAG, "Motor iniciado; esperando confirmación de captura de audio.")
+            mainHandler.removeCallbacks(healthCheck)
+            mainHandler.postDelayed(healthCheck, STARTUP_CHECK_INTERVAL_MS)
         } catch (e: Exception) {
             Log.e(TAG, "Error al iniciar detector", e)
-            onError("Error al iniciar: ${e.message ?: e.javaClass.simpleName}")
             isListening = false
+            mainHandler.removeCallbacks(healthCheck)
+            onError("Error al iniciar: ${e.message ?: e.javaClass.simpleName}")
         }
+    }
+
+    private fun reportState(state: String) {
+        if (lastReportedState == state) return
+        lastReportedState = state
+        Log.i(TAG, "Estado del motor: $state")
+        onStateChanged(state)
+    }
+
+    private fun fail(message: String) {
+        if (!isListening) return
+        Log.e(TAG, message)
+        isListening = false
+        mainHandler.removeCallbacks(healthCheck)
+        onError(message)
     }
 
     fun stop() {
@@ -85,9 +141,11 @@ class WakeWordDetector(
         try {
             detector?.stop()
         } catch (e: Exception) {
-            Log.w(TAG, "Error al detener", e)
+            Log.w(TAG, "Error al detener el motor", e)
         }
         isListening = false
+        audioCaptureConfirmed = false
+        lastReportedState = null
     }
 
     fun release() {
@@ -96,7 +154,7 @@ class WakeWordDetector(
         try {
             detector?.release()
         } catch (e: Exception) {
-            Log.w(TAG, "Error al liberar recursos", e)
+            Log.w(TAG, "Error al liberar recursos del motor", e)
         }
         detector = null
     }
@@ -105,5 +163,13 @@ class WakeWordDetector(
 
     companion object {
         private const val TAG = "WakeWordDetector"
+        private const val STARTUP_TIMEOUT_MS = 45_000L
+        private const val STARTUP_CHECK_INTERVAL_MS = 2_000L
+        private const val HEALTH_CHECK_INTERVAL_MS = 5_000L
+
+        const val STATE_STARTING = "INICIALIZANDO"
+        const val STATE_LOADING = "CARGANDO_MODELOS"
+        const val STATE_CHECKING = "VERIFICANDO_MOTOR"
+        const val STATE_CAPTURING = "CAPTURANDO_AUDIO"
     }
 }
