@@ -7,6 +7,7 @@ Aplicación experimental para Samsung Galaxy A30s (Android 11 / API 30) que reco
 - Escucha continua mediante un servicio en primer plano y una notificación persistente.
 - Detección local con el modelo `HEY_JARVIS` (openWakeWord + ONNX Runtime).
 - Vibración corta al detectar la frase.
+- La vibración la genera una sola vez la aplicación; el canal de notificación de detección no añade una segunda vibración.
 - Intenta invocar el asistente configurado en Android; si esa solicitud falla, prueba abrir ChatGPT y, como último recurso, Play Store.
 - Siempre muestra una notificación de detección. El usuario ya ha confirmado en el Galaxy A30s que tocarla abre ChatGPT.
 - Control de sensibilidad desde la pantalla.
@@ -42,6 +43,8 @@ gradle :app:assembleDebug
 ```
 
 El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`.
+
+**Aviso de instalación:** el APK de depuración de GitHub Actions se firma con una clave temporal del entorno de compilación. No debe tratarse como una actualización instalable garantizada sobre una versión anterior. Para actualizaciones sin desinstalar ni perder datos habrá que configurar una clave de firma estable, custodiada por un adulto responsable, mediante secretos de GitHub. No se debe subir la clave privada al repositorio.
 
 En GitHub: abre **Actions → Build JARVIS Android APK** y descarga el artefacto `JARVISWakeWord-debug-apk` cuando la ejecución termine correctamente.
 
