@@ -3,8 +3,6 @@ package com.jarvis.wakeword
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.app.role.RoleManager
-import android.os.Build
 import android.net.Uri
 import android.util.Log
 
@@ -14,38 +12,27 @@ object ChatGPTLauncher {
     private const val TAG = "ChatGPTLauncher"
 
     /**
-     * Prefer Android's public assistant entry point when ChatGPT is the
-     * configured system assistant. On Android, this is the supported route
-     * used by the system assistant gesture; it may open ChatGPT Voice.
-     * If Android blocks a background launch, the caller can offer a
-     * notification-based, user-tapped fallback.
+     * Ask Android to invoke the configured system assistant. The user has
+     * already selected ChatGPT as the device assistant, so there is no need
+     * to query protected role-holder information from the app.
+     *
+     * If the system cannot resolve or launch the assistant, fall back to
+     * opening the ChatGPT application. A foreground-service launch can still
+     * be restricted by Android; the notification remains the user-tapped
+     * fallback in that case.
      */
     fun launchVoiceAssistant(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isChatGptDefaultAssistant(context)) {
-            try {
-                val assistIntent = Intent(Intent.ACTION_ASSIST).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(assistIntent)
-                Log.i(TAG, "Android default assistant invoked for ChatGPT")
-                return true
-            } catch (e: Exception) {
-                Log.w(TAG, "Android blocked the assistant launch; trying app launcher", e)
+        try {
+            val assistIntent = Intent(Intent.ACTION_ASSIST).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
+            context.startActivity(assistIntent)
+            Log.i(TAG, "Intent ACTION_ASSIST enviado al sistema")
+            return true
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo invocar el asistente del sistema; intentando abrir ChatGPT", e)
         }
         return launch(context)
-    }
-
-    private fun isChatGptDefaultAssistant(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
-        return try {
-            val roleManager = context.getSystemService(RoleManager::class.java)
-            roleManager?.getRoleHolders(RoleManager.ROLE_ASSISTANT)
-                ?.contains(CHATGPT_PACKAGE) == true
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not verify Android assistant role", e)
-            false
-        }
     }
 
     fun launch(context: Context): Boolean {
