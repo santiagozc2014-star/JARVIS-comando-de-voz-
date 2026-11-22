@@ -38,6 +38,15 @@ jobs:
         run: gradle :app:testDebugUnitTest
       - name: Build debug APK
         run: gradle :app:assembleDebug
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$SDK_ROOT"
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.signature.txt
+          grep -q "Signer #1 certificate SHA-256 digest:" app/build/outputs/apk/debug/app-debug.apk.signature.txt
       - name: Generate APK checksum
         run: sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/app-debug.apk.sha256
       - name: Upload debug APK
@@ -47,4 +56,5 @@ jobs:
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/app-debug.apk.sha256
+            app/build/outputs/apk/debug/app-debug.apk.signature.txt
           if-no-files-found: error
