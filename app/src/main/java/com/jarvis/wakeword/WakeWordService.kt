@@ -113,6 +113,13 @@ class WakeWordService : Service() {
         )
         detector?.start()
 
+        // start() can report a synchronous initialization failure through onError.
+        // Do not overwrite that stopped/error state with a stale "listening" status.
+        if (detector?.isListening() != true) {
+            Log.e(TAG, "El detector no pudo iniciar; se evita publicar un estado de escucha activo.")
+            return
+        }
+
         sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
             putExtra(EXTRA_LISTENING, true)
             putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
