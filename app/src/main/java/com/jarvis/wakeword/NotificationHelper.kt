@@ -91,9 +91,10 @@ object NotificationHelper {
         // Use the exact same package launch intent as the app's working manual
         // "Open ChatGPT" button. ACTION_ASSIST is not consistently routed by
         // Samsung One UI when invoked from a notification PendingIntent.
-        val openChatGpt = context.packageManager
+        val chatGptIntent = context.packageManager
             .getLaunchIntentForPackage("com.openai.chatgpt")
-            ?: Intent(context, MainActivity::class.java)
+        val chatGptAvailable = chatGptIntent != null
+        val openChatGpt = chatGptIntent ?: Intent(context, MainActivity::class.java)
 
         openChatGpt.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -108,7 +109,7 @@ object NotificationHelper {
 
         val builder = NotificationCompat.Builder(context, DETECTION_CHANNEL_ID)
             .setContentTitle("Hey JARVIS detectado")
-            .setContentText("Toca aquí para abrir ChatGPT")
+            .setContentText(if (chatGptAvailable) "Toca aquí para abrir ChatGPT" else "Toca aquí para abrir JARVIS")
             .setSmallIcon(R.drawable.ic_jarvis)
             .setContentIntent(pending)
             .setAutoCancel(true)
