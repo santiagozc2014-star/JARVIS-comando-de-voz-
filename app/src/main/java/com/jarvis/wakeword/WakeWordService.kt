@@ -88,6 +88,7 @@ class WakeWordService : Service() {
                 getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putBoolean(KEY_LISTENING, false)
+                    .putString(KEY_ENGINE_STATE, STATE_ERROR)
                     .apply()
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, false)
@@ -97,6 +98,11 @@ class WakeWordService : Service() {
                 stopSelf()
             },
             onStateChanged = { state ->
+                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_ENGINE_STATE, state)
+                    .apply()
+                NotificationHelper.updateListeningNotification(this, state)
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, true)
                     putExtra(EXTRA_ENGINE_STATE, state)
@@ -112,6 +118,7 @@ class WakeWordService : Service() {
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_LISTENING, true)
+            .putString(KEY_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
             .apply()
     }
 
@@ -128,6 +135,7 @@ class WakeWordService : Service() {
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_LISTENING, false)
+            .putString(KEY_ENGINE_STATE, STATE_STOPPED)
             .apply()
     }
 
@@ -201,11 +209,17 @@ class WakeWordService : Service() {
 
         private const val PREFS = "jarvis_prefs"
         private const val KEY_LISTENING = "is_listening"
+        private const val KEY_ENGINE_STATE = "engine_state"
         private const val TAG = "WakeWordService"
 
         fun isMarkedListening(context: Context): Boolean {
             return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_LISTENING, false)
+        }
+
+        fun getMarkedEngineState(context: Context): String {
+            return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_ENGINE_STATE, STATE_STOPPED) ?: STATE_STOPPED
         }
     }
 }
