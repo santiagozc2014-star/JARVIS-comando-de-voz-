@@ -26,6 +26,10 @@ class WakeWordDetector(
 
     private var startedAtMs = 0L
     private var audioCaptureConfirmed = false
+    private var lastAudioProgressAtMs = 0L
+    private var lastPredictionProgressAtMs = 0L
+    private var lastAudioSamples = 0L
+    private var lastPredictionCount = 0
     private var lastReportedState: String? = null
 
     private val healthCheck = object : Runnable {
@@ -42,10 +46,19 @@ class WakeWordDetector(
                 val audioField = engine.javaClass.getDeclaredField("audioRecord").apply {
                     isAccessible = true
                 }
+                val samplesField = engine.javaClass.getDeclaredField("rawTotalWritten").apply {
+                    isAccessible = true
+                }
+                val predictionsField = engine.javaClass.getDeclaredField("predictionCount").apply {
+                    isAccessible = true
+                }
 
                 val worker = threadField.get(engine) as? Thread
                 val recorder = audioField.get(engine) as? AudioRecord
-                val elapsed = SystemClock.elapsedRealtime() - startedAtMs
+                val audioSamples = samplesField.getLong(engine)
+                val predictionCount = predictionsField.getInt(engine)
+                val now = SystemClock.elapsedRealtime()
+                val elapsed = now - startedAtMs
 
                 when {
                     worker == null -> fail("El motor no llegó a crear su hilo de procesamiento.")
@@ -61,8 +74,30 @@ class WakeWordDetector(
                     recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING -> {
                         if (!audioCaptureConfirmed) {
                             audioCaptureConfirmed = true
+                            lastAudioProgressAtMs = now
+                            lastPredictionProgressAtMs = now
+                            lastAudioSamples = audioSamples
+                            lastPredictionCount = predictionCount
                             reportState(STATE_CAPTURING)
                             Log.i(TAG, "Captura real de audio confirmada.")
+                        } else {
+                            if (audioSamples > lastAudioSamples) {
+                                lastAudioSamples = audioSamples
+                                lastAudioProgressAtMs = now
+                            }
+                            if (predictionCount > lastPredictionCount) {
+                                lastPredictionCount = predictionCount
+                                lastPredictionProgressAtMs = now
+                                Log.d(TAG, "Predicciones procesadas: $predictionCount")
+                            }
+
+                            when {
+                                now - lastAudioProgressAtMs >= AUDIO_STALL_TIMEOUT_MS ->
+                                    fail("Android mantiene el micrófono abierto, pero no está entregando muestras de audio.")
+                                predictionCount == 0 &&
+                                    now - lastPredictionProgressAtMs >= MODEL_PROGRESS_TIMEOUT_MS ->
+                                    fail("El micrófono recibe audio, pero el modelo no consigue generar predicciones. Requiere revisar el procesamiento ONNX.")
+                            }
                         }
                     }
                     audioCaptureConfirmed ->
@@ -97,6 +132,10 @@ class WakeWordDetector(
             reportState(STATE_STARTING)
             startedAtMs = SystemClock.elapsedRealtime()
             audioCaptureConfirmed = false
+            lastAudioProgressAtMs = startedAtMs
+            lastPredictionProgressAtMs = startedAtMs
+            lastAudioSamples = 0L
+            lastPredictionCount = 0
 
             detector = OpenWakeWord.Builder(context)
                 .setModel(OpenWakeWord.BuiltInModel.HEY_JARVIS)
@@ -166,6 +205,8 @@ class WakeWordDetector(
         private const val STARTUP_TIMEOUT_MS = 45_000L
         private const val STARTUP_CHECK_INTERVAL_MS = 2_000L
         private const val HEALTH_CHECK_INTERVAL_MS = 5_000L
+        private const val AUDIO_STALL_TIMEOUT_MS = 15_000L
+        private const val MODEL_PROGRESS_TIMEOUT_MS = 30_000L
 
         const val STATE_STARTING = "INICIALIZANDO"
         const val STATE_LOADING = "CARGANDO_MODELOS"
