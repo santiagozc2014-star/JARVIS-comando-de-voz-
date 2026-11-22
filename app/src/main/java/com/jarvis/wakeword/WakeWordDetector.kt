@@ -30,6 +30,7 @@ class WakeWordDetector(
     private var lastPredictionProgressAtMs = 0L
     private var lastAudioSamples = 0L
     private var lastPredictionCount = 0
+    private var lastAudioMetricLogAtMs = 0L
     private var lastReportedState: String? = null
 
     private val healthCheck = object : Runnable {
@@ -50,6 +51,12 @@ class WakeWordDetector(
                     isAccessible = true
                 }
                 val predictionsField = engine.javaClass.getDeclaredField("predictionCount").apply {
+                    isAccessible = true
+                }
+                val rawBufferField = engine.javaClass.getDeclaredField("rawBuffer").apply {
+                    isAccessible = true
+                }
+                val rawWritePosField = engine.javaClass.getDeclaredField("rawWritePos").apply {
                     isAccessible = true
                 }
 
@@ -89,6 +96,14 @@ class WakeWordDetector(
                                 lastPredictionCount = predictionCount
                                 lastPredictionProgressAtMs = now
                                 Log.d(TAG, "Predicciones procesadas: $predictionCount")
+                            }
+                            if (now - lastAudioMetricLogAtMs >= AUDIO_METRIC_LOG_INTERVAL_MS) {
+                                val rawBuffer = rawBufferField.get(engine) as? FloatArray
+                                if (rawBuffer != null && rawBuffer.isNotEmpty()) {
+                                    val writePos = rawWritePosField.getInt(engine)
+                                    logAudioLevel(rawBuffer, writePos)
+                                }
+                                lastAudioMetricLogAtMs = now
                             }
 
                             when {
@@ -135,6 +150,7 @@ class WakeWordDetector(
             lastPredictionProgressAtMs = startedAtMs
             lastAudioSamples = 0L
             lastPredictionCount = 0
+            lastAudioMetricLogAtMs = 0L
 
             detector = OpenWakeWord.Builder(context)
                 .setModel(OpenWakeWord.BuiltInModel.HEY_JARVIS)
@@ -157,6 +173,23 @@ class WakeWordDetector(
             mainHandler.removeCallbacks(healthCheck)
             onError("Error al iniciar: ${e.message ?: e.javaClass.simpleName}")
         }
+    }
+
+    /**
+     * Logs only signal-level statistics; audio samples are never stored or transmitted.
+     */
+    private fun logAudioLevel(buffer: FloatArray, writePos: Int) {
+        val sampleCount = minOf(AUDIO_METRIC_SAMPLE_COUNT, buffer.size)
+        var sumSquares = 0.0
+        var peak = 0f
+        for (offset in 0 until sampleCount) {
+            val index = (writePos - 1 - offset + buffer.size) % buffer.size
+            val sample = kotlin.math.abs(buffer[index])
+            if (sample > peak) peak = sample
+            sumSquares += sample.toDouble() * sample.toDouble()
+        }
+        val rms = kotlin.math.sqrt(sumSquares / sampleCount)
+        Log.i(TAG, "Nivel de audio PCM16: RMS=%.1f, pico=%.1f".format(rms, peak))
     }
 
     private fun reportState(state: String) {
@@ -206,6 +239,8 @@ class WakeWordDetector(
         private const val HEALTH_CHECK_INTERVAL_MS = 5_000L
         private const val AUDIO_STALL_TIMEOUT_MS = 15_000L
         private const val MODEL_PROGRESS_TIMEOUT_MS = 30_000L
+        private const val AUDIO_METRIC_LOG_INTERVAL_MS = 10_000L
+        private const val AUDIO_METRIC_SAMPLE_COUNT = 16_000
 
         const val STATE_STARTING = "INICIALIZANDO"
         const val STATE_LOADING = "CARGANDO_MODELOS"
