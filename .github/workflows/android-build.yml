@@ -15,11 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      JARVIS_KEYSTORE_BASE64: ${{ secrets.JARVIS_KEYSTORE_BASE64 }}
-      JARVIS_KEYSTORE_PASSWORD: ${{ secrets.JARVIS_KEYSTORE_PASSWORD }}
-      JARVIS_KEY_ALIAS: ${{ secrets.JARVIS_KEY_ALIAS }}
-      JARVIS_KEY_PASSWORD: ${{ secrets.JARVIS_KEY_PASSWORD }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -58,19 +53,26 @@ jobs:
       - name: Generate APK checksum
         run: sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/app-debug.apk.sha256
       - name: Prepare protected release signing key
-        if: ${{ env.JARVIS_KEYSTORE_BASE64 != '' && env.JARVIS_KEYSTORE_PASSWORD != '' && env.JARVIS_KEY_ALIAS != '' && env.JARVIS_KEY_PASSWORD != '' }}
+        if: ${{ secrets.JARVIS_KEYSTORE_BASE64 != '' && secrets.JARVIS_KEYSTORE_PASSWORD != '' && secrets.JARVIS_KEY_ALIAS != '' && secrets.JARVIS_KEY_PASSWORD != '' }}
+        env:
+          JARVIS_KEYSTORE_BASE64: ${{ secrets.JARVIS_KEYSTORE_BASE64 }}
         shell: bash
         run: |
           set -euo pipefail
           KEYSTORE_PATH="$RUNNER_TEMP/jarvis-release.jks"
+          umask 077
           printf '%s' "$JARVIS_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
           test -s "$KEYSTORE_PATH"
           echo "JARVIS_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
       - name: Build signed release APK
-        if: ${{ env.JARVIS_KEYSTORE_BASE64 != '' && env.JARVIS_KEYSTORE_PASSWORD != '' && env.JARVIS_KEY_ALIAS != '' && env.JARVIS_KEY_PASSWORD != '' }}
+        if: ${{ secrets.JARVIS_KEYSTORE_BASE64 != '' && secrets.JARVIS_KEYSTORE_PASSWORD != '' && secrets.JARVIS_KEY_ALIAS != '' && secrets.JARVIS_KEY_PASSWORD != '' }}
+        env:
+          JARVIS_KEYSTORE_PASSWORD: ${{ secrets.JARVIS_KEYSTORE_PASSWORD }}
+          JARVIS_KEY_ALIAS: ${{ secrets.JARVIS_KEY_ALIAS }}
+          JARVIS_KEY_PASSWORD: ${{ secrets.JARVIS_KEY_PASSWORD }}
         run: gradle :app:assembleRelease
       - name: Verify signed release APK
-        if: ${{ env.JARVIS_KEYSTORE_BASE64 != '' && env.JARVIS_KEYSTORE_PASSWORD != '' && env.JARVIS_KEY_ALIAS != '' && env.JARVIS_KEY_PASSWORD != '' }}
+        if: ${{ secrets.JARVIS_KEYSTORE_BASE64 != '' && secrets.JARVIS_KEYSTORE_PASSWORD != '' && secrets.JARVIS_KEY_ALIAS != '' && secrets.JARVIS_KEY_PASSWORD != '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -84,7 +86,7 @@ jobs:
           grep -Eq "V2 Signer: certificate SHA-256 digest: [[:xdigit:]]{64}" "$APK.signature.txt"
           sha256sum "$APK" > "$APK.sha256"
       - name: Upload signed release APK
-        if: ${{ env.JARVIS_KEYSTORE_BASE64 != '' && env.JARVIS_KEYSTORE_PASSWORD != '' && env.JARVIS_KEY_ALIAS != '' && env.JARVIS_KEY_PASSWORD != '' }}
+        if: ${{ secrets.JARVIS_KEYSTORE_BASE64 != '' && secrets.JARVIS_KEYSTORE_PASSWORD != '' && secrets.JARVIS_KEY_ALIAS != '' && secrets.JARVIS_KEY_PASSWORD != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: JARVISWakeWord-signed-release-apk
@@ -93,6 +95,11 @@ jobs:
             app/build/outputs/apk/release/app-release.apk.sha256
             app/build/outputs/apk/release/app-release.apk.signature.txt
           if-no-files-found: error
+      - name: Remove temporary release signing key
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/jarvis-release.jks"
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
