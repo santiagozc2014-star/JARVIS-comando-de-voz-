@@ -4,7 +4,7 @@ package com.jarvis.wakeword
  * Describes what Android accepted, not whether the target app became visible.
  * Background activity launches can be blocked without a synchronous error.
  */
-internal enum class LaunchRequestResult(val userMessage: String) {
+enum class LaunchRequestResult(val userMessage: String) {
     ASSIST_REQUESTED("Android recibió la solicitud del asistente. La apertura no está confirmada."),
     CHATGPT_REQUESTED("Android recibió la solicitud de abrir ChatGPT. La apertura no está confirmada."),
     PLAY_STORE_REQUESTED("Se solicitó abrir Play Store porque ChatGPT no está disponible."),
