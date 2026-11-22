@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleLaunchIntent(intent: Intent?) {
         if (intent?.action == WakeWordService.ACTION_OPEN_CHATGPT) {
-            ChatGPTLauncher.launch(this)
+            ChatGPTLauncher.launchVoiceAssistant(this)
             intent.action = null
         }
     }
