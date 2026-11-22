@@ -59,7 +59,7 @@ object ChatGPTLauncher {
             )
             try {
                 context.startActivity(launchIntent)
-                Log.i(TAG, "ChatGPT abierto correctamente")
+                Log.i(TAG, "Intent de apertura de ChatGPT enviado al sistema")
                 return true
             } catch (e: Exception) {
                 Log.w(TAG, "No se pudo abrir ChatGPT directamente", e)
