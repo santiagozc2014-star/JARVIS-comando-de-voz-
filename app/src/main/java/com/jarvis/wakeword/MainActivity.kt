@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         isServiceRunning = WakeWordService.isMarkedListening(this)
-        engineState = if (isServiceRunning) WakeWordDetector.STATE_STARTING else WakeWordService.STATE_STOPPED
+        engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
         handleLaunchIntent(intent)
     }
@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
             this, statusReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED
         )
         isServiceRunning = WakeWordService.isMarkedListening(this)
-        if (!isServiceRunning) engineState = WakeWordService.STATE_STOPPED
+        engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
     }
 
