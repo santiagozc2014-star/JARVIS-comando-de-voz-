@@ -88,18 +88,17 @@ object NotificationHelper {
         manager.notify(NOTIFICATION_ID, buildListeningNotification(context, status))
     }
 
-    fun showDetectionNotification(context: Context, autoOpened: Boolean) {
-        val openChatGpt = Intent(context, MainActivity::class.java).apply {
-            action = WakeWordService.ACTION_OPEN_CHATGPT
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        }
+    fun showDetectionNotification(context: Context) {
+        // A notification tap is a user action, so Android permits this PendingIntent
+        // to invoke the selected system assistant without a background-activity trampoline.
+        val openAssistant = Intent(Intent.ACTION_ASSIST)
         val pending = PendingIntent.getActivity(
-            context, 2, openChatGpt,
+            context, 2, openAssistant,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = if (autoOpened) "Hey Jarvis → ChatGPT solicitado" else "Hey Jarvis detectado"
-        val text = if (autoOpened) "Si no aparece, toca aquí para abrir ChatGPT" else "Toca para abrir ChatGPT"
+        val title = "Hey JARVIS detectado"
+        val text = "Toca aquí para abrir el asistente de voz"
 
         val builder = NotificationCompat.Builder(context, DETECTION_CHANNEL_ID)
             .setContentTitle(title)
