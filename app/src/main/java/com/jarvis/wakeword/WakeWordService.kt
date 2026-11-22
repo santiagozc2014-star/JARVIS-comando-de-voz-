@@ -72,17 +72,18 @@ class WakeWordService : Service() {
                 Log.i(TAG, "Detección con score $score")
                 vibrateShort()
 
-                // Intento de apertura AUTOMÁTICA de ChatGPT (sin tocar nada)
-                val opened = ChatGPTLauncher.launchVoiceAssistant(this)
-                Log.i(TAG, "Apertura automática de ChatGPT: $opened")
+                // A request being accepted is not proof that Android displayed ChatGPT.
+                val launchResult = ChatGPTLauncher.requestVoiceAssistantLaunch(this)
+                Log.i(TAG, "Resultado de solicitud de apertura: $launchResult")
 
+                // This user-tapped notification is the verified fallback route.
                 NotificationHelper.showDetectionNotification(this)
 
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, true)
                     putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_CAPTURING)
                     putExtra(EXTRA_LAST_SCORE, score)
-                    putExtra(EXTRA_AUTO_OPENED, opened)
+                    putExtra(EXTRA_LAUNCH_RESULT, launchResult.name)
                 })
             },
             onError = { msg ->
@@ -206,7 +207,7 @@ class WakeWordService : Service() {
         const val EXTRA_THRESHOLD = "threshold"
         const val EXTRA_LISTENING = "listening"
         const val EXTRA_LAST_SCORE = "last_score"
-        const val EXTRA_AUTO_OPENED = "auto_opened"
+        const val EXTRA_LAUNCH_RESULT = "launch_result"
         const val EXTRA_ERROR = "error"
         const val EXTRA_ENGINE_STATE = "engine_state"
         const val STATE_ERROR = "ERROR"

@@ -56,9 +56,13 @@ class MainActivity : AppCompatActivity() {
             if (!error.isNullOrBlank()) {
                 Toast.makeText(this@MainActivity, error, Toast.LENGTH_LONG).show()
             }
-            val autoOpened = intent.getBooleanExtra(WakeWordService.EXTRA_AUTO_OPENED, false)
-            if (autoOpened) {
-                Toast.makeText(this@MainActivity, "Solicitud de apertura enviada a ChatGPT", Toast.LENGTH_SHORT).show()
+
+            val launchResultName = intent.getStringExtra(WakeWordService.EXTRA_LAUNCH_RESULT)
+            val launchResult = launchResultName?.let {
+                runCatching { LaunchRequestResult.valueOf(it) }.getOrNull()
+            }
+            if (launchResult != null) {
+                Toast.makeText(this@MainActivity, launchResult.userMessage, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -82,20 +86,6 @@ class MainActivity : AppCompatActivity() {
             .getFloat("threshold", 0.50f)
         thresholdSeek.progress = ((currentThreshold - 0.25f) / 0.60f * 100).toInt().coerceIn(0, 100)
         updateThresholdLabel()
-
-        thresholdSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                currentThreshold = 0.25f + (progress / 100f) * 0.60f
-                updateThresholdLabel()
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                getSharedPreferences("jarvis_prefs", MODE_PRIVATE)
-                    .edit()
-                    .putFloat("threshold", currentThreshold)
-                    .apply()
-            }
-        })
 
         btnToggle.setOnClickListener {
             if (isServiceRunning) stopService() else checkPermissionAndStart()
@@ -142,7 +132,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleLaunchIntent(intent: Intent?) {
         if (intent?.action == WakeWordService.ACTION_OPEN_CHATGPT) {
-            ChatGPTLauncher.launchVoiceAssistant(this)
+            ChatGPTLauncher.requestVoiceAssistantLaunch(this)
             intent.action = null
         }
     }
