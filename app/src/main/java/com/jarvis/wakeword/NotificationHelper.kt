@@ -98,8 +98,8 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = if (autoOpened) "Hey Jarvis → ChatGPT abierto" else "Hey Jarvis detectado"
-        val text = if (autoOpened) "Ya puedes hablar con ChatGPT" else "Toca para abrir ChatGPT"
+        val title = if (autoOpened) "Hey Jarvis → ChatGPT solicitado" else "Hey Jarvis detectado"
+        val text = if (autoOpened) "Si no aparece, toca aquí para abrir ChatGPT" else "Toca para abrir ChatGPT"
 
         val builder = NotificationCompat.Builder(context, DETECTION_CHANNEL_ID)
             .setContentTitle(title)
