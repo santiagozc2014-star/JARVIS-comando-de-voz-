@@ -111,10 +111,6 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-        if (!autoOpened) {
-            builder.setFullScreenIntent(pending, true)
-        }
-
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.notify(DETECTION_NOTIFICATION_ID, builder.build())
     }
@@ -125,7 +121,7 @@ object NotificationHelper {
             context, 3, openApp,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, DETECTION_CHANNEL_ID)
             .setContentTitle("JARVIS no puede escuchar")
             .setContentText(message.take(120))
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
