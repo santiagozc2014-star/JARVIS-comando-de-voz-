@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 object NotificationHelper {
 
     const val CHANNEL_ID = "jarvis_wakeword_channel"
-    const val DETECTION_CHANNEL_ID = "jarvis_detection_channel"
+    const val DETECTION_CHANNEL_ID = "jarvis_detection_channel_v2"
     const val NOTIFICATION_ID = 1001
     const val DETECTION_NOTIFICATION_ID = 1002
 
@@ -38,8 +38,7 @@ object NotificationHelper {
             ).apply {
                 description = "Aviso cuando se detecta la frase Hey Jarvis."
                 setShowBadge(false)
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 120, 80, 120)
+                enableVibration(false)
             }
             manager.createNotificationChannel(detectionChannel)
         }
