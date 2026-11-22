@@ -28,6 +28,10 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { viewBinding = true }
+    lint {
+        // This build is sideloaded for the Android 11 target device, not distributed through Google Play.
+        disable += "ExpiredTargetSdkVersion"
+    }
 }
 
 dependencies {
