@@ -27,6 +27,13 @@ jobs:
           gradle-version: "8.2.1"
       - name: Run Android lint
         run: gradle :app:lintDebug
+      - name: Upload Android lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JARVIS-android-lint-report
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
       - name: Run conversation unit tests
         run: gradle :app:testDebugUnitTest
       - name: Build debug APK
