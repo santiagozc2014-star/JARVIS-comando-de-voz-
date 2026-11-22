@@ -80,6 +80,7 @@ class WakeWordService : Service() {
 
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, true)
+                    putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_CAPTURING)
                     putExtra(EXTRA_LAST_SCORE, score)
                     putExtra(EXTRA_AUTO_OPENED, opened)
                 })
