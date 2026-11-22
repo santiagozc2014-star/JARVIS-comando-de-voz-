@@ -48,6 +48,10 @@ El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 
 **Aviso de instalación:** el APK de depuración de GitHub Actions se firma con una clave temporal del entorno de compilación. No debe tratarse como una actualización instalable garantizada sobre una versión anterior. Para actualizaciones sin desinstalar ni perder datos habrá que configurar una clave de firma estable, custodiada por un adulto responsable, mediante secretos de GitHub. No se debe subir la clave privada al repositorio.
 
+En la revisión del 22-11-2026 se confirmó que el certificado del APK de la ejecución #87 es distinto al del APK de la ejecución #72. Android rechazará el nuevo APK como actualización de aquella instalación. **No desinstales la versión que ya funciona ni instales este APK encima.** Desinstalar puede borrar los datos locales. La clave privada temporal de la ejecución antigua no está disponible; antes de migrar habrá que acordar una instalación segura y conservar los datos que se quieran mantener.
+
+La pantalla de conversación nativa sigue usando `NotConfiguredAiProvider`: es una interfaz local, no un asistente conectado a ChatGPT. No envía mensajes ni audio a un modelo. La integración con IA requiere una arquitectura y credenciales autorizadas separadas.
+
 En GitHub: abre **Actions → Build JARVIS Android APK** y descarga el artefacto `JARVISWakeWord-debug-apk` cuando la ejecución termine correctamente.
 
 ## Archivos principales
