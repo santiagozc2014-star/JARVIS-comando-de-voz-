@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             }
             val autoOpened = intent.getBooleanExtra(WakeWordService.EXTRA_AUTO_OPENED, false)
             if (autoOpened) {
-                Toast.makeText(this@MainActivity, "ChatGPT abierto automáticamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Solicitud de apertura enviada a ChatGPT", Toast.LENGTH_SHORT).show()
             }
         }
     }
