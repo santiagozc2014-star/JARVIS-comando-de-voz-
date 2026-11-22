@@ -94,8 +94,7 @@ class WakeWordDetector(
                             when {
                                 now - lastAudioProgressAtMs >= AUDIO_STALL_TIMEOUT_MS ->
                                     fail("Android mantiene el micrófono abierto, pero no está entregando muestras de audio.")
-                                predictionCount == 0 &&
-                                    now - lastPredictionProgressAtMs >= MODEL_PROGRESS_TIMEOUT_MS ->
+                                now - lastPredictionProgressAtMs >= MODEL_PROGRESS_TIMEOUT_MS ->
                                     fail("El micrófono recibe audio, pero el modelo no consigue generar predicciones. Requiere revisar el procesamiento ONNX.")
                             }
                         }
