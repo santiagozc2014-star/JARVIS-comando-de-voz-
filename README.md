@@ -15,6 +15,7 @@ Esta configuración mantiene `targetSdk 30` para el dispositivo Android 11 proba
 - Control de sensibilidad desde la pantalla.
 - WakeLock parcial con límite de seguridad de 6 horas.
 - Compilación del APK mediante GitHub Actions.
+- Verificación criptográfica del APK con `apksigner`, huella del certificado y suma SHA-256 antes de publicar el artefacto.
 
 ## Importante: solicitud no equivale a apertura
 
@@ -45,6 +46,7 @@ gradle :app:assembleDebug
 ```
 
 El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`.
+La canalización de CI solo publica el APK si el análisis Lint, las pruebas unitarias, la compilación y la verificación de firma terminan correctamente.
 
 **Aviso de instalación:** el APK de depuración de GitHub Actions se firma con una clave temporal del entorno de compilación. No debe tratarse como una actualización instalable garantizada sobre una versión anterior. Para actualizaciones sin desinstalar ni perder datos habrá que configurar una clave de firma estable, custodiada por un adulto responsable, mediante secretos de GitHub. No se debe subir la clave privada al repositorio.
 
