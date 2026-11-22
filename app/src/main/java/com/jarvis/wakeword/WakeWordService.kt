@@ -76,7 +76,7 @@ class WakeWordService : Service() {
                 val opened = ChatGPTLauncher.launchVoiceAssistant(this)
                 Log.i(TAG, "Apertura automática de ChatGPT: $opened")
 
-                NotificationHelper.showDetectionNotification(this, autoOpened = opened)
+                NotificationHelper.showDetectionNotification(this)
 
                 sendBroadcast(Intent(ACTION_STATUS).apply {
                     putExtra(EXTRA_LISTENING, true)
