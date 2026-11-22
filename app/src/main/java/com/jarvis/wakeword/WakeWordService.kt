@@ -76,7 +76,7 @@ class WakeWordService : Service() {
                 // This user-tapped notification is the verified fallback route.
                 NotificationHelper.showDetectionNotification(this)
 
-                sendBroadcast(Intent(ACTION_STATUS).apply {
+                sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
                     putExtra(EXTRA_LISTENING, true)
                     putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_CAPTURING)
                     putExtra(EXTRA_LAST_SCORE, score)
@@ -92,7 +92,7 @@ class WakeWordService : Service() {
                     .putBoolean(KEY_LISTENING, false)
                     .putString(KEY_ENGINE_STATE, STATE_ERROR)
                     .apply()
-                sendBroadcast(Intent(ACTION_STATUS).apply {
+                sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
                     putExtra(EXTRA_LISTENING, false)
                     putExtra(EXTRA_ENGINE_STATE, STATE_ERROR)
                     putExtra(EXTRA_ERROR, msg)
@@ -105,7 +105,7 @@ class WakeWordService : Service() {
                     .putString(KEY_ENGINE_STATE, state)
                     .apply()
                 NotificationHelper.updateListeningNotification(this, state)
-                sendBroadcast(Intent(ACTION_STATUS).apply {
+                sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
                     putExtra(EXTRA_LISTENING, true)
                     putExtra(EXTRA_ENGINE_STATE, state)
                 })
@@ -113,7 +113,7 @@ class WakeWordService : Service() {
         )
         detector?.start()
 
-        sendBroadcast(Intent(ACTION_STATUS).apply {
+        sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
             putExtra(EXTRA_LISTENING, true)
             putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
         })
@@ -131,7 +131,7 @@ class WakeWordService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
 
         val finalState = if (terminalError) STATE_ERROR else STATE_STOPPED
-        sendBroadcast(Intent(ACTION_STATUS).apply {
+        sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
             putExtra(EXTRA_LISTENING, false)
             putExtra(EXTRA_ENGINE_STATE, finalState)
         })
