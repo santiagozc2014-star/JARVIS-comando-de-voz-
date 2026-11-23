@@ -58,6 +58,20 @@
             android:layout_marginTop="12dp"
             android:text="Probar apertura de ChatGPT" />
         <Button
+            android:id="@+id/btnSetDefaultAssistant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Establecer JARVIS como asistente" />
+        <TextView
+            android:id="@+id/assistantStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Comprobando la configuración del asistente…"
+            android:textColor="@color/jarvis_muted"
+            android:textSize="12sp" />
+        <Button
             android:id="@+id/btnSamsungBatterySettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

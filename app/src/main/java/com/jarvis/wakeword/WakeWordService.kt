@@ -107,7 +107,11 @@ class WakeWordService : Service() {
                         return@post
                     }
 
-                    val launchResult = ChatGPTLauncher.requestVoiceAssistantLaunch(this)
+                    val launchResult = if (VoiceInteractionBridge.requestSession(this)) {
+                        LaunchRequestResult.SYSTEM_ASSISTANT_SESSION_REQUESTED
+                    } else {
+                        ChatGPTLauncher.requestVoiceAssistantLaunch(this)
+                    }
                     Log.i(TAG, "Resultado de solicitud de apertura: $launchResult")
 
                     sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {

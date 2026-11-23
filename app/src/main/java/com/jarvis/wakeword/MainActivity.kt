@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.app.role.RoleManager
+import android.os.Build
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
@@ -26,6 +28,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var thresholdSeek: SeekBar
     private lateinit var thresholdLabel: TextView
     private lateinit var lastScoreText: TextView
+    private lateinit var assistantStatusText: TextView
+    private lateinit var btnSetDefaultAssistant: Button
 
     private var isServiceRunning = false
     private var engineState = WakeWordService.STATE_STOPPED
@@ -39,6 +43,12 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Se necesita permiso de micrófono", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private val requestAssistantRole = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        updateAssistantStatus()
     }
 
     private val statusReceiver = object : BroadcastReceiver() {
@@ -83,6 +93,9 @@ class MainActivity : AppCompatActivity() {
         thresholdSeek = findViewById(R.id.thresholdSeek)
         thresholdLabel = findViewById(R.id.thresholdLabel)
         lastScoreText = findViewById(R.id.lastScoreText)
+        assistantStatusText = findViewById(R.id.assistantStatusText)
+        btnSetDefaultAssistant = findViewById(R.id.btnSetDefaultAssistant)
+        btnSetDefaultAssistant.setOnClickListener { requestAssistantRole() }
         findViewById<Button>(R.id.btnSamsungBatterySettings).setOnClickListener {
             openSamsungBackgroundSettings()
         }
@@ -124,6 +137,12 @@ class MainActivity : AppCompatActivity() {
         isServiceRunning = WakeWordService.isMarkedListening()
         engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
+        updateAssistantStatus()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateAssistantStatus()
     }
 
     override fun onStart() {
@@ -140,6 +159,57 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         try { unregisterReceiver(statusReceiver) } catch (_: Exception) {}
         super.onStop()
+    }
+
+    private fun requestAssistantRole() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            Toast.makeText(this, "La selección de asistente necesita Android 10 o posterior.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val roleManager = getSystemService(RoleManager::class.java)
+        if (roleManager == null || !roleManager.isRoleAvailable(RoleManager.ROLE_ASSISTANT)) {
+            try {
+                startActivity(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS))
+            } catch (_: Exception) {
+                Toast.makeText(this, "Este sistema no ofrece la selección de asistente.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        if (roleManager.isRoleHeld(RoleManager.ROLE_ASSISTANT)) {
+            updateAssistantStatus()
+            Toast.makeText(this, "JARVIS ya es el asistente predeterminado.", Toast.LENGTH_LONG).show()
+            return
+        }
+        requestAssistantRole.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_ASSISTANT))
+    }
+
+    private fun updateAssistantStatus() {
+        if (!::assistantStatusText.isInitialized || !::btnSetDefaultAssistant.isInitialized) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            assistantStatusText.text = "La selección de asistente requiere Android 10 o posterior."
+            btnSetDefaultAssistant.isEnabled = false
+            return
+        }
+        val roleManager = getSystemService(RoleManager::class.java)
+        val available = roleManager?.isRoleAvailable(RoleManager.ROLE_ASSISTANT) == true
+        val held = available && roleManager?.isRoleHeld(RoleManager.ROLE_ASSISTANT) == true
+        when {
+            held -> {
+                assistantStatusText.text = "JARVIS es el asistente predeterminado. Las detecciones podrán usar la sesión de voz del sistema."
+                btnSetDefaultAssistant.text = "JARVIS ya es el asistente activo"
+                btnSetDefaultAssistant.isEnabled = false
+            }
+            available -> {
+                assistantStatusText.text = "Selecciona JARVIS como asistente predeterminado para habilitar la apertura mediante la sesión de voz de Android."
+                btnSetDefaultAssistant.text = "Establecer JARVIS como asistente"
+                btnSetDefaultAssistant.isEnabled = true
+            }
+            else -> {
+                assistantStatusText.text = "One UI no ofrece el rol de asistente a esta aplicación. Se mantendrá la apertura anterior."
+                btnSetDefaultAssistant.text = "Abrir ajustes de asistente"
+                btnSetDefaultAssistant.isEnabled = true
+            }
+        }
     }
 
     private fun openSamsungBackgroundSettings() {

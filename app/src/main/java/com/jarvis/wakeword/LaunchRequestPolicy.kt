@@ -5,6 +5,7 @@ package com.jarvis.wakeword
  * Background activity launches can be blocked without a synchronous error.
  */
 enum class LaunchRequestResult(val userMessage: String) {
+    SYSTEM_ASSISTANT_SESSION_REQUESTED("Android recibió la solicitud mediante la sesión de asistente. Apertura pendiente de confirmación."),
     CHATGPT_REQUESTED("Android recibió la solicitud de abrir ChatGPT. La apertura no está confirmada."),
     ASSIST_REQUESTED("Android recibió la solicitud del asistente. La apertura no está confirmada."),
     PLAY_STORE_REQUESTED("Se solicitó abrir Play Store porque ChatGPT no está disponible."),
