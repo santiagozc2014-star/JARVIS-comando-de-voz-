@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        isServiceRunning = WakeWordService.isMarkedListening(this)
+        isServiceRunning = WakeWordService.isMarkedListening()
         engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
     }
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.registerReceiver(
             this, statusReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED
         )
-        isServiceRunning = WakeWordService.isMarkedListening(this)
+        isServiceRunning = WakeWordService.isMarkedListening()
         engineState = WakeWordService.getMarkedEngineState(this)
         updateUI()
     }

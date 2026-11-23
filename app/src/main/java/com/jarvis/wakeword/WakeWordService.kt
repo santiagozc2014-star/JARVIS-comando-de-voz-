@@ -87,9 +87,9 @@ class WakeWordService : Service() {
                 terminalError = true
                 Log.e(TAG, msg)
                 NotificationHelper.showErrorNotification(this, msg)
+                WakeWordRuntimeState.setListening(false)
                 getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit()
-                    .putBoolean(KEY_LISTENING, false)
                     .putString(KEY_ENGINE_STATE, STATE_ERROR)
                     .apply()
                 sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
@@ -124,9 +124,9 @@ class WakeWordService : Service() {
             putExtra(EXTRA_LISTENING, true)
             putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
         })
+        WakeWordRuntimeState.setListening(true)
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(KEY_LISTENING, true)
             .putString(KEY_ENGINE_STATE, WakeWordDetector.STATE_STARTING)
             .apply()
     }
@@ -137,6 +137,7 @@ class WakeWordService : Service() {
         releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
 
+        WakeWordRuntimeState.setListening(false)
         val finalState = if (terminalError) STATE_ERROR else STATE_STOPPED
         sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
             putExtra(EXTRA_LISTENING, false)
@@ -144,7 +145,6 @@ class WakeWordService : Service() {
         })
         getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(KEY_LISTENING, false)
             .putString(KEY_ENGINE_STATE, finalState)
             .apply()
     }
@@ -217,14 +217,10 @@ class WakeWordService : Service() {
         const val STATE_STOPPED = "DETENIDO"
 
         private const val PREFS = "jarvis_prefs"
-        private const val KEY_LISTENING = "is_listening"
         private const val KEY_ENGINE_STATE = "engine_state"
         private const val TAG = "WakeWordService"
 
-        fun isMarkedListening(context: Context): Boolean {
-            return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_LISTENING, false)
-        }
+        fun isMarkedListening(): Boolean = WakeWordRuntimeState.isListening()
 
         fun getMarkedEngineState(context: Context): String {
             return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
