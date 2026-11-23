@@ -81,7 +81,13 @@ class WakeWordService : Service() {
                 // Publish the user-controlled fallback before attempting an
                 // automatic launch. Android may silently block background
                 // activity starts, so this notification must already exist.
-                NotificationHelper.showDetectionNotification(this)
+                try {
+                    NotificationHelper.showDetectionNotification(this)
+                } catch (e: Exception) {
+                    // A notification failure must not suppress the automatic
+                    // launch attempt; the two recovery paths are independent.
+                    Log.w(TAG, "No se pudo publicar la notificación de detección", e)
+                }
 
                 // The detector callback runs on its processing worker. Move
                 // activity-launch work to the main thread; this does not bypass
