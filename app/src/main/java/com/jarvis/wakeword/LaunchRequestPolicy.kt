@@ -5,10 +5,10 @@ package com.jarvis.wakeword
  * Background activity launches can be blocked without a synchronous error.
  */
 enum class LaunchRequestResult(val userMessage: String) {
-    ASSIST_REQUESTED("Android recibió la solicitud del asistente. La apertura no está confirmada."),
     CHATGPT_REQUESTED("Android recibió la solicitud de abrir ChatGPT. La apertura no está confirmada."),
+    ASSIST_REQUESTED("Android recibió la solicitud del asistente. La apertura no está confirmada."),
     PLAY_STORE_REQUESTED("Se solicitó abrir Play Store porque ChatGPT no está disponible."),
-    FAILED("No se pudo solicitar la apertura del asistente ni de ChatGPT.")
+    FAILED("No se pudo solicitar la apertura de ChatGPT ni del asistente.")
 }
 
 internal interface LaunchRequestGateway {
@@ -19,11 +19,13 @@ internal interface LaunchRequestGateway {
 
 internal object LaunchRequestPolicy {
     fun execute(gateway: LaunchRequestGateway): LaunchRequestResult {
-        if (safeAttempt { gateway.requestAssistant() }) {
-            return LaunchRequestResult.ASSIST_REQUESTED
-        }
+        // Prefer the explicitly requested destination. ACTION_ASSIST can be
+        // accepted by Android even when it routes to a different assistant.
         if (safeAttempt { gateway.requestChatGPT() }) {
             return LaunchRequestResult.CHATGPT_REQUESTED
+        }
+        if (safeAttempt { gateway.requestAssistant() }) {
+            return LaunchRequestResult.ASSIST_REQUESTED
         }
         if (safeAttempt { gateway.requestPlayStore() }) {
             return LaunchRequestResult.PLAY_STORE_REQUESTED
