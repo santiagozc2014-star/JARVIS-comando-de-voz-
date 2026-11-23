@@ -4,6 +4,8 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.VibrationEffect
@@ -17,6 +19,7 @@ class WakeWordService : Service() {
     private var detector: WakeWordDetector? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var terminalError = false
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -69,19 +72,28 @@ class WakeWordService : Service() {
                 Log.i(TAG, "Detección con score $score")
                 vibrateShort()
 
-                // A request being accepted is not proof that Android displayed ChatGPT.
-                val launchResult = ChatGPTLauncher.requestVoiceAssistantLaunch(this)
-                Log.i(TAG, "Resultado de solicitud de apertura: $launchResult")
-
-                // This user-tapped notification is the verified fallback route.
+                // Publish the user-controlled fallback before attempting an
+                // automatic launch. Android may silently block background
+                // activity starts, so this notification must already exist.
                 NotificationHelper.showDetectionNotification(this)
 
-                sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
-                    putExtra(EXTRA_LISTENING, true)
-                    putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_CAPTURING)
-                    putExtra(EXTRA_LAST_SCORE, score)
-                    putExtra(EXTRA_LAUNCH_RESULT, launchResult.name)
-                })
+                // The detector callback runs on its processing worker. Move
+                // activity-launch work to the main thread; this does not bypass
+                // Android's background-launch policy, but avoids doing UI work
+                // on the audio inference thread.
+                mainHandler.post {
+                    if (terminalError) return@post
+
+                    val launchResult = ChatGPTLauncher.requestVoiceAssistantLaunch(this)
+                    Log.i(TAG, "Resultado de solicitud de apertura: $launchResult")
+
+                    sendBroadcast(Intent(ACTION_STATUS).setPackage(packageName).apply {
+                        putExtra(EXTRA_LISTENING, true)
+                        putExtra(EXTRA_ENGINE_STATE, WakeWordDetector.STATE_CAPTURING)
+                        putExtra(EXTRA_LAST_SCORE, score)
+                        putExtra(EXTRA_LAUNCH_RESULT, launchResult.name)
+                    })
+                }
             },
             onError = { msg ->
                 terminalError = true
@@ -197,6 +209,7 @@ class WakeWordService : Service() {
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
         stopListening()
         super.onDestroy()
     }
