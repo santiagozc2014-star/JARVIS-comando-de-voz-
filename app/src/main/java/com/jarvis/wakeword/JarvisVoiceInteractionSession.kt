@@ -16,7 +16,7 @@ class JarvisVoiceInteractionSession(context: JarvisVoiceInteractionSessionServic
         super.onShow(args, showFlags)
         setUiEnabled(false)
 
-        val target = packageManager.getLaunchIntentForPackage(CHATGPT_PACKAGE)
+        val target = getContext().packageManager.getLaunchIntentForPackage(CHATGPT_PACKAGE)
             ?: Intent(getContext(), MainActivity::class.java)
 
         try {
