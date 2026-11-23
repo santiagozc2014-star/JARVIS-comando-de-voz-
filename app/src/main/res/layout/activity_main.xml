@@ -57,6 +57,33 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Probar apertura de ChatGPT" />
+        <Button
+            android:id="@+id/btnSamsungBatterySettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Configurar batería Samsung" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Añade JARVIS a «Aplicaciones que nunca se suspenden» para reducir cierres en segundo plano."
+            android:textColor="@color/jarvis_muted"
+            android:textSize="12sp" />
+        <Button
+            android:id="@+id/btnOverlayPermission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Permiso avanzado de apertura (opcional)" />
+        <TextView
+            android:id="@+id/overlayPermissionStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/jarvis_muted"
+            android:textSize="12sp"
+            android:text="Comprobando permiso avanzado…" />
         <TextView
             android:id="@+id/thresholdLabel"
             android:layout_width="match_parent"

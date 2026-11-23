@@ -12,7 +12,7 @@ object ChatGPTLauncher {
     private const val TAG = "ChatGPTLauncher"
 
     /**
-     * Tries the configured system assistant, then ChatGPT, then Play Store.
+     * Tries ChatGPT first, then the configured system assistant, then Play Store.
      *
      * The result reports only that Android accepted startActivity() without
      * throwing. It does NOT prove that Android displayed the target app:

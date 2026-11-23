@@ -3,6 +3,7 @@ package com.jarvis.wakeword
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -13,12 +14,14 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import androidx.core.app.ServiceCompat
+import java.util.concurrent.atomic.AtomicLong
 
 class WakeWordService : Service() {
 
     private var detector: WakeWordDetector? = null
     private var wakeLock: PowerManager.WakeLock? = null
-    private var terminalError = false
+    @Volatile private var terminalError = false
+    private val launchGeneration = AtomicLong(0L)
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
@@ -48,10 +51,13 @@ class WakeWordService : Service() {
         }
 
         terminalError = false
+        val sessionGeneration = launchGeneration.incrementAndGet()
         val notification = NotificationHelper.buildListeningNotification(this)
 
-        val fgsType = if (Build.VERSION.SDK_INT >= 34) {
-            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+        // Android 11 (API 30) requires the microphone FGS type in the
+        // startForeground call when targetSdk is 30 or higher.
+        val fgsType = if (ForegroundServiceTypePolicy.requiresExplicitMicrophoneType(Build.VERSION.SDK_INT)) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
         } else {
             0
         }
@@ -82,7 +88,18 @@ class WakeWordService : Service() {
                 // Android's background-launch policy, but avoids doing UI work
                 // on the audio inference thread.
                 mainHandler.post {
-                    if (terminalError) return@post
+                    // Ignore delayed detections after stop/error/restart. Without
+                    // this generation check, a queued callback could open ChatGPT
+                    // after the user had already stopped JARVIS.
+                    if (!WakeWordLaunchGate.canLaunch(
+                            detectedGeneration = sessionGeneration,
+                            currentGeneration = launchGeneration.get(),
+                            terminalError = terminalError
+                        )
+                    ) {
+                        Log.i(TAG, "Apertura automática cancelada: sesión ya no activa")
+                        return@post
+                    }
 
                     val launchResult = ChatGPTLauncher.requestVoiceAssistantLaunch(this)
                     Log.i(TAG, "Resultado de solicitud de apertura: $launchResult")
@@ -97,6 +114,7 @@ class WakeWordService : Service() {
             },
             onError = { msg ->
                 terminalError = true
+                launchGeneration.incrementAndGet()
                 Log.e(TAG, msg)
                 NotificationHelper.showErrorNotification(this, msg)
                 WakeWordRuntimeState.setListening(false)
@@ -128,6 +146,7 @@ class WakeWordService : Service() {
         // start() can report a synchronous initialization failure through onError.
         // Do not overwrite that stopped/error state with a stale "listening" status.
         if (detector?.isListening() != true) {
+            launchGeneration.incrementAndGet()
             Log.e(TAG, "El detector no pudo iniciar; se evita publicar un estado de escucha activo.")
             return
         }
@@ -144,6 +163,8 @@ class WakeWordService : Service() {
     }
 
     private fun stopListening() {
+        // Invalidate any launch callback already queued on the main thread.
+        launchGeneration.incrementAndGet()
         detector?.release()
         detector = null
         releaseWakeLock()
