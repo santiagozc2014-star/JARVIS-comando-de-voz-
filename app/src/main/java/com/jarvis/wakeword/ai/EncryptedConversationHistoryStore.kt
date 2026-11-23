@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -28,12 +29,17 @@ class EncryptedConversationHistoryStore(context: Context) : ConversationHistoryS
     private val atomicFile = AtomicFile(File(appContext.filesDir, FILE_NAME))
 
     override suspend fun read(): List<ConversationMessage> = withContext(Dispatchers.IO) {
-        if (!atomicFile.baseFile.exists()) return@withContext emptyList()
-        val encrypted = atomicFile.openRead().use { input ->
+        // openRead() restores AtomicFile's backup after an interrupted write.
+        val input = try {
+            atomicFile.openRead()
+        } catch (_: FileNotFoundException) {
+            return@withContext emptyList()
+        }
+        val encrypted = input.use {
             if (atomicFile.baseFile.length() > MAX_FILE_BYTES) {
                 throw IllegalStateException("El historial cifrado supera el tamaño permitido.")
             }
-            input.readBytes()
+            it.readBytes()
         }
         decrypt(encrypted)
     }
