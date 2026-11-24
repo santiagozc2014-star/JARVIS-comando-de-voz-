@@ -48,11 +48,9 @@ class WakeWordService : Service() {
 
         val notification = NotificationHelper.buildListeningNotification(this)
 
-        val fgsType = if (Build.VERSION.SDK_INT >= 34) {
-            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-        } else {
-            0
-        }
+        // Android 11 (API 30) introduced the microphone foreground-service type.
+        // Supplying it from API 30 is required for this target device; older APIs use 0.
+        val fgsType = WakeWordForegroundServiceType.forSdk(Build.VERSION.SDK_INT)
 
         ServiceCompat.startForeground(
             this,
