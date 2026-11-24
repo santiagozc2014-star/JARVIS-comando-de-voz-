@@ -37,6 +37,7 @@ class JarvisVoiceInteractionSession(context: JarvisVoiceInteractionSessionServic
     }
 
     companion object {
+        private const val TAG = "JarvisVoiceSession"
         private const val CHATGPT_PACKAGE = "com.openai.chatgpt"
     }
 }
