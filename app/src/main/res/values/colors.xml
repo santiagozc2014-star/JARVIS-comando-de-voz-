@@ -1,7 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="jarvis_background">#071522</color>
-    <color name="jarvis_cyan">#00D7FF</color>
-    <color name="jarvis_text">#EAFBFF</color>
-    <color name="jarvis_muted">#8DAAB8</color>
-</resources>
+<resources><color name="jarvis_background">#07111D</color><color name="jarvis_surface">#101F2E</color><color name="jarvis_surface_raised">#162A3B</color><color name="jarvis_cyan">#42DDF5</color><color name="jarvis_cyan_dim">#1B8299</color><color name="jarvis_text">#F1F7FA</color><color name="jarvis_muted">#9BB0BE</color><color name="jarvis_outline">#294354</color><color name="jarvis_success">#65D6A3</color><color name="jarvis_warning">#F2C879</color></resources>
