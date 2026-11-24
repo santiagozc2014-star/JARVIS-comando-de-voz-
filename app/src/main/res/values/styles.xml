@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/jarvis_cyan</item>
-        <item name="colorPrimaryVariant">@color/jarvis_background</item>
-        <item name="colorOnPrimary">@color/jarvis_background</item>
-        <item name="android:fontFamily">sans</item>
-        <item name="android:statusBarColor">@color/jarvis_background</item>
-        <item name="android:navigationBarColor">@color/jarvis_background</item>
-        <item name="android:windowLightStatusBar">false</item>
-    </style>
-</resources>
+<resources><style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+<item name="colorPrimary">@color/jarvis_cyan</item><item name="colorPrimaryVariant">@color/jarvis_cyan_dim</item><item name="colorOnPrimary">@color/jarvis_background</item><item name="colorSecondary">@color/jarvis_cyan</item><item name="colorOnSecondary">@color/jarvis_background</item><item name="android:fontFamily">sans</item><item name="android:windowLightStatusBar">false</item><item name="android:statusBarColor">@color/jarvis_background</item><item name="android:navigationBarColor">@color/jarvis_background</item><item name="android:colorAccent">@color/jarvis_cyan</item>
+</style></resources>
