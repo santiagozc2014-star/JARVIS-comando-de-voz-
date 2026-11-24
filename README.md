@@ -77,3 +77,11 @@ En GitHub: abre **Actions → Build JARVIS Android APK** y descarga el artefacto
 - Modelo HEY_JARVIS: CC BY-NC-SA 4.0 (uso no comercial).
 
 Proyecto experimental. La validación final de reconocimiento de voz y apertura debe realizarse en el Galaxy A30s real.
+
+## Wake-word service compatibility and known limitations
+
+The foreground service now supplies Android's microphone service type starting at API 30 (Android 11). Android 8–10 continue to use the legacy service type value.
+
+The pinned `openwakeword-android` dependency still has an upstream capture-thread limitation: negative `AudioRecord.read()` results are not classified separately from short reads, and failures inside its worker thread are logged but are not exposed through the application's error callback. A persistent capture failure can therefore leave the wrapper's requested-listening state out of sync with actual audio processing. This application change does not claim to repair that dependency behavior. A follow-up dependency fork or an app-owned capture pipeline is required before claiming automatic recovery from microphone errors.
+
+The unit tests for the foreground-service type are JVM tests. They do not validate microphone capture, ONNX inference, screen-off operation, Samsung One UI battery management, CPU use, or wake-word accuracy. Those require Android instrumentation and physical testing on the Galaxy A30s.
