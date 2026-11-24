@@ -1,115 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/jarvis_background"
-    android:fillViewport="true">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="24dp">
-        <ImageView
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:layout_marginTop="24dp"
-            android:contentDescription="@string/jarvis_logo_description"
-            android:src="@drawable/ic_jarvis" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/app_name"
-            android:textColor="@color/jarvis_cyan"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:gravity="center"
-            android:text="Estado: DETENIDO"
-            android:textColor="@color/jarvis_text"
-            android:textSize="17sp" />
-        <Button
-            android:id="@+id/btnToggle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Iniciar escucha continua" />
-        <Button
-            android:id="@+id/btnOpenJarvisChat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Abrir conversación JARVIS" />
-        <Button
-            android:id="@+id/btnOpenMemory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Gestionar memoria de JARVIS" />
-        <Button
-            android:id="@+id/btnTestChatGpt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Probar apertura de ChatGPT" />
-        <Button
-            android:id="@+id/btnSetDefaultAssistant"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Establecer JARVIS como asistente" />
-        <TextView
-            android:id="@+id/assistantStatusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Comprobando la configuración del asistente…"
-            android:textColor="@color/jarvis_muted"
-            android:textSize="12sp" />
-        <Button
-            android:id="@+id/btnSamsungBatterySettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Configurar batería Samsung" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Añade JARVIS a «Aplicaciones que nunca se suspenden» para reducir cierres en segundo plano."
-            android:textColor="@color/jarvis_muted"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/thresholdLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:textColor="@color/jarvis_text"
-            android:text="Sensibilidad: 0.50" />
-        <SeekBar
-            android:id="@+id/thresholdSeek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:progress="42" />
-        <TextView
-            android:id="@+id/lastScoreText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/jarvis_muted"
-            android:text="Sin detecciones todavía" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/privacy_notice"
-            android:textColor="@color/jarvis_muted"
-            android:textSize="12sp" />
-    </LinearLayout>
-</ScrollView>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/jarvis_background" android:fillViewport="true">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+<ImageView android:layout_width="52dp" android:layout_height="52dp" android:contentDescription="@string/jarvis_logo_description" android:src="@drawable/ic_jarvis"/>
+<LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="14dp" android:orientation="vertical">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="J.A.R.V.I.S." android:textColor="@color/jarvis_cyan" android:textSize="22sp" android:textStyle="bold" android:letterSpacing="0.12"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ASISTENTE PERSONAL" android:textColor="@color/jarvis_muted" android:textSize="10sp" android:letterSpacing="0.12"/>
+</LinearLayout></LinearLayout>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:text="ESTADO DEL SISTEMA" android:textColor="@color/jarvis_muted" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.12"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/jarvis_panel" android:orientation="vertical" android:padding="18dp">
+<TextView android:id="@+id/statusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" android:text="Estado: DETENIDO" android:textColor="@color/jarvis_text" android:textSize="21sp" android:textStyle="bold"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="El micrófono solo se utiliza cuando activas la escucha." android:textColor="@color/jarvis_muted" android:textSize="13sp"/>
+<Button android:id="@+id/btnToggle" android:layout_width="match_parent" android:layout_height="54dp" android:layout_marginTop="16dp" android:minHeight="48dp" android:text="Iniciar escucha continua" android:textAllCaps="false" android:textStyle="bold"/>
+</LinearLayout>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="ACCESO RÁPIDO" android:textColor="@color/jarvis_muted" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.12"/>
+<Button android:id="@+id/btnOpenJarvisChat" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="8dp" android:text="Abrir conversación" android:textAllCaps="false"/>
+<Button android:id="@+id/btnOpenMemory" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="6dp" android:text="Gestionar memoria" android:textAllCaps="false"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="CONFIGURACIÓN" android:textColor="@color/jarvis_muted" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.12"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/jarvis_panel" android:orientation="vertical" android:padding="16dp">
+<TextView android:id="@+id/assistantStatusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" android:text="Comprobando la configuración del asistente…" android:textColor="@color/jarvis_muted" android:textSize="13sp"/>
+<Button android:id="@+id/btnSetDefaultAssistant" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:text="Establecer como asistente" android:textAllCaps="false"/>
+<Button android:id="@+id/btnSamsungBatterySettings" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:text="Configuración de batería Samsung" android:textAllCaps="false"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Añade JARVIS a «Aplicaciones que nunca se suspenden» para reducir cierres en segundo plano." android:textColor="@color/jarvis_muted" android:textSize="12sp"/>
+<TextView android:id="@+id/thresholdLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Sensibilidad: 0.50" android:textColor="@color/jarvis_text"/>
+<SeekBar android:id="@+id/thresholdSeek" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:max="100" android:progress="42"/>
+<TextView android:id="@+id/lastScoreText" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" android:text="Sin detecciones todavía" android:textColor="@color/jarvis_muted" android:textSize="12sp"/>
+<Button android:id="@+id/btnTestChatGpt" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:text="Probar apertura de ChatGPT" android:textAllCaps="false"/>
+</LinearLayout>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="@string/privacy_notice" android:textColor="@color/jarvis_muted" android:textSize="12sp"/>
+</LinearLayout></ScrollView>
